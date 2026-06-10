@@ -9,12 +9,15 @@ services:
       - "5000:5000"
     depends_on:
       - db
+    environment:
+      FLASK_ENV: development
 
   frontend:
     build:
-      context: ../frontend
+      context: ../game_store_frontend
     volumes:
-      - ../frontend:/app
+      - ../game_store_frontend:/app
+      - /app/node_modules  # Exclude host node_modules; use container's
     ports:
       - "5173:5173"
 
@@ -25,10 +28,27 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: appdb
+      POSTGRES_INITDB_ARGS: "-c max_connections=200"
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./init-keycloak-db.sql:/docker-entrypoint-initdb.d/01-init-keycloak-db.sql
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    command: start-dev
 
 volumes:
   postgres-data:
