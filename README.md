@@ -33,6 +33,9 @@ docker compose up -d
 docker compose ps
     - revisar los estados de cada contenedor
 
+docker compose build <nombre de contenedor> --no-cache
+    - reconstruir un contenedor sin datos de la subida anterior, mas usado para backend donde los plugins del requirements.txt pueden cambiar.
+
 docker inspect --format='{{json .State.Health}}' devcontainer-db-1
     - Para revisar los healthchecks de la base de datos
         - "Status":"healthy" - significa que Docker ha declarado que el contenedor de la base de datos es saludable
