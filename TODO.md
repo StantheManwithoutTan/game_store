@@ -209,7 +209,7 @@ git branch -d feature/setup
   - Activar branch protection en `main` y `develop` (requiere PR + review)
   - Escribir README inicial con descripción, tecnologías y pasos para levantar el proyecto
 
-- [ ] **Levantar PostgreSQL con Docker Compose**
+- [X] **Levantar PostgreSQL con Docker Compose**
   - Crear `docker-compose.yml` con servicio `postgres:15`
   - Agregar volumen persistente y healthcheck
   - Gestionar credenciales en archivo `.env` — nunca hardcoded
