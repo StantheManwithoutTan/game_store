@@ -1,26 +1,56 @@
 from flask import Flask, request, jsonify, session, redirect, url_for
-from flask_cors import CORS
+import os
+
+# Importar las bibliotecas de Keycloak, OAUTH2, JWT, etc. para autenticación y autorización
 import requests
 import jwt
 from keycloak import KeycloakOpenID
-import os
 from dotenv import load_dotenv
 
-app = Flask(__name__)
-CORS(app)
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
+# Importar las configuraciones, extensiones y rutas
+from flask_cors import CORS
+from config import Config
+from extensions import db, migrate, api
+from routes import register_blueprints
 
-# Keycloak configuration
-keycloak_openid = KeycloakOpenID(
-    server_url=os.environ.get('KEYCLOAK_SERVER_URL'),
-    client_id=os.environ.get('KEYCLOAK_CLIENT_ID'),
-    realm_name=os.environ.get('KEYCLOAK_REALM'),
-    client_secret_key=os.environ.get('KEYCLOAK_CLIENT_SECRET')
-)
 
+from models import User, Console, Game, Controller  # noqa: F401
+
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+    CORS(app)
+
+    """
+    app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
+
+    # Keycloak configuration
+    keycloak_openid = KeycloakOpenID(
+        server_url=os.environ.get('KEYCLOAK_SERVER_URL'),
+        client_id=os.environ.get('KEYCLOAK_CLIENT_ID'),
+        realm_name=os.environ.get('KEYCLOAK_REALM'),
+        client_secret_key=os.environ.get('KEYCLOAK_CLIENT_SECRET')
+    )
+    """
+    db.init_app(app)
+    migrate.init_app(app,db)
+    api.init_app(app)
+    register_blueprints(api)
+    
+
+    return app
+
+app = create_app()
+
+@app.route('/')
+def home():
+    # Renders the index.html file from the templates folder
+    return "Hello, World!"
+
+""""
 @app.route('/auth/login', methods=['POST'])
 def login():
-    """Exchange authorization code for tokens"""
+    # Exchange authorization code for tokens
     data = request.json
     code = data.get('code')
     
@@ -62,7 +92,7 @@ def login():
 
 @app.route('/auth/logout', methods=['POST'])
 def logout():
-    """Logout and invalidate tokens"""
+    # Logout and invalidate tokens
     refresh_token = request.json.get('refresh_token')
     try:
         keycloak_openid.logout(refresh_token)
@@ -72,7 +102,7 @@ def logout():
 
 @app.route('/auth/verify', methods=['POST'])
 def verify_token():
-    """Verify JWT token"""
+    # Verify JWT token
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     try:
         payload = jwt.decode(
@@ -87,3 +117,4 @@ def verify_token():
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
 
+"""

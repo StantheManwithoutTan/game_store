@@ -209,18 +209,18 @@ git branch -d feature/setup
   - Activar branch protection en `main` y `develop` (requiere PR + review)
   - Escribir README inicial con descripción, tecnologías y pasos para levantar el proyecto
 
-- [ ] **Levantar PostgreSQL con Docker Compose**
+- [X] **Levantar PostgreSQL con Docker Compose**
   - Crear `docker-compose.yml` con servicio `postgres:15`
   - Agregar volumen persistente y healthcheck
   - Gestionar credenciales en archivo `.env` — nunca hardcoded
 
-- [ ] **Configurar Flyway / Liquibase y crear las 4 migraciones base**
-  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at)
+- [O] **Configurar Alembic + SqlAlchemy + flask-smorest y crear las 4 migraciones base**
+  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at) X
   - `V2`: tabla `movimientos_stock` (id, producto_id, tipo, cantidad_anterior, cantidad_nueva, usuario, observaciones, fecha)
   - `V3`: tablas `categorias` y `usuarios`
   - `V4`: tabla `audit_log`
 
-- [ ] **Realizar primer commit siguiendo Conventional Commits**
+- [X] **Realizar primer commit siguiendo Conventional Commits**
   - Ejemplo: `feat: initial project setup with docker and migrations`
 
 ---
