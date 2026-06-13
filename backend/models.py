@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Numeric, Boolean, Date, ForeignKey, Text
+from sqlalchemy import String, Integer, Numeric, Boolean, Date, ForeignKey, Text, JSON
 from extensions import db
 
 class TimestampMixin:
@@ -29,6 +29,19 @@ class Product(db.Model):
     quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     min_stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="active", nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+
+class AuditLog(db.Model):
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    table_name: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    record_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    action: Mapped[str] = mapped_column(String(30), nullable=False)
+    old_values: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    new_values: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    changed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
 
