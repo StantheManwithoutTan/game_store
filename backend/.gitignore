@@ -1,3 +1,6 @@
 .env
 
 
+*.iml
+*.pyc
+__pycache__/
