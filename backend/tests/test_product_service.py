@@ -172,8 +172,8 @@ def test_update_product_creates_audit_log(app, sample_product):
     ).first()
 
     assert audit_log is not None
-    assert audit_log.old_values["price"] == 299.99
-    assert audit_log.new_values["price"] == 350.0
+    assert float(audit_log.old_values["price"]) == 299.99
+    assert float(audit_log.new_values["price"]) == 350.0
 
 
 def test_delete_product_success(app, sample_product):
@@ -181,4 +181,4 @@ def test_delete_product_success(app, sample_product):
 
     ProductService.delete(product_id)
 
-    assert Product.query.get(product_id) is None
+    assert db.session.get(Product, product_id) is None
