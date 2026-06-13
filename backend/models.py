@@ -17,6 +17,21 @@ class User(db.Model, TimestampMixin):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     name: Mapped[str | None] = mapped_column(String(255))
 
+class Product(db.Model):
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    sku: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    category: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    min_stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="active", nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+
 class Console(db.Model, TimestampMixin):
     __tablename__ = "consoles"
 

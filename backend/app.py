@@ -14,7 +14,7 @@ from extensions import db, migrate, api
 from routes import register_blueprints
 
 
-from models import User, Console, Game, Controller  # noqa: F401
+from models import User, Product, Console, Game, Controller  # noqa: F401
 
 def create_app(config_class=Config):
     app = Flask(__name__)
