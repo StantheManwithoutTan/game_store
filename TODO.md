@@ -209,18 +209,18 @@ git branch -d feature/setup
   - Activar branch protection en `main` y `develop` (requiere PR + review)
   - Escribir README inicial con descripción, tecnologías y pasos para levantar el proyecto
 
-- [ ] **Levantar PostgreSQL con Docker Compose**
+- [X] **Levantar PostgreSQL con Docker Compose**
   - Crear `docker-compose.yml` con servicio `postgres:15`
   - Agregar volumen persistente y healthcheck
   - Gestionar credenciales en archivo `.env` — nunca hardcoded
 
-- [ ] **Configurar Flyway / Liquibase y crear las 4 migraciones base**
-  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at)
+- [O] **Configurar Alembic + SqlAlchemy + flask-smorest y crear las 4 migraciones base**
+  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at) X
   - `V2`: tabla `movimientos_stock` (id, producto_id, tipo, cantidad_anterior, cantidad_nueva, usuario, observaciones, fecha)
   - `V3`: tablas `categorias` y `usuarios`
   - `V4`: tabla `audit_log`
 
-- [ ] **Realizar primer commit siguiendo Conventional Commits**
+- [X] **Realizar primer commit siguiendo Conventional Commits**
   - Ejemplo: `feat: initial project setup with docker and migrations`
 
 ---
@@ -229,24 +229,24 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/flask-crud`
 
-- [ ] **Estructurar el proyecto Flask y configurar SQLAlchemy**
+- [x] **Estructurar el proyecto Flask y configurar SQLAlchemy**
   - Crear carpetas: `app/`, `models/`, `routes/`, `services/`, `tests/`
   - Configurar `create_app()` con factory pattern
   - Integrar Flask-Migrate / Alembic con SQLAlchemy
 
-- [ ] **Crear modelo `Product` y `ProductService` con validaciones**
+- [x] **Crear modelo `Product` y `ProductService` con validaciones**
   - Modelo con todos los campos del alcance funcional
   - Servicio con métodos: `create`, `get_all`, `get_by_id`, `update`, `delete`
   - Validaciones: SKU único, precio > 0, stock >= 0, nombre obligatorio
 
-- [ ] **Implementar los 5 endpoints REST del CRUD de Producto**
+- [x] **Implementar los 5 endpoints REST del CRUD de Producto**
   - `POST /api/products`
   - `GET /api/products` — paginación (`?page=&per_page=`) y búsqueda (`?search=&categoria=&estado=`)
   - `GET /api/products/<id>`
   - `PUT /api/products/<id>`
   - `DELETE /api/products/<id>`
 
-- [ ] **Abrir PR #1 hacia `develop` con descripción de los cambios**
+- [x] **Abrir PR #1 hacia `develop` con descripción de los cambios**
 
 ---
 
@@ -275,17 +275,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/openapi-audit-tests`
 
-- [ ] **Configurar Swagger UI con `flask-openapi3` o `flasgger`**
+- [x] **Configurar Swagger UI con `flask-openapi3` o `flasgger`**
   - Exponer `/api/docs` con Swagger UI interactivo
   - Documentar todos los endpoints: esquemas de request, response y códigos de error
   - Verificar que `/api/openapi.json` se genera sin errores
 
-- [ ] **Implementar auditoría tipo Envers con SQLAlchemy-Continuum**
+- [x] **Implementar auditoría tipo Envers con SQLAlchemy-Continuum**
   - Alternativa: triggers PostgreSQL que escriban en `audit_log`
   - Verificar que al editar un producto queda registrada la versión anterior
   - Capturar evidencia (screenshot de la tabla de auditoría)
 
-- [ ] **Escribir 15+ unit tests con pytest y alcanzar 60% de cobertura**
+- [x] **Escribir 15+ unit tests con pytest y alcanzar 60% de cobertura**
   - ~5 tests para `ProductService.create` (casos válidos e inválidos)
   - ~5 tests para validaciones de negocio (SKU duplicado, precio negativo, etc.)
   - ~5 tests para `update` y `delete`
