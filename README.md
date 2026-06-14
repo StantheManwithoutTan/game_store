@@ -48,10 +48,31 @@ docker inspect --format='{{json .State.Health}}' devcontainer-db-1
 docker compose down
     - baja todos los contenedores
 
+-- Pruebas unitarias
 
+Para ejecutar las pruebas unitarias:
 
+pytest backend/tests/test_product_service.py -v
 
+Para ejecutar las pruebas con cobertura:
 
+pytest backend/tests/test_product_service.py --cov=backend --cov-report=html
+
+El reporte HTML se genera en:
+
+backend/htmlcov/index.html
+
+-- Pruebas de integración y API
+
+Para ejecutar las pruebas de integración:
+
+pytest backend/tests/test_product_integration.py -v
+
+También se implementaron pruebas para los endpoints de la API relacionados con productos.
+
+Para ejecutar las pruebas de API:
+
+pytest backend/tests/test_product_api.py -v
 
 
 Tipos de Productos en tienda preliminar:
