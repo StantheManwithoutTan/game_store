@@ -1,4 +1,4 @@
-from models import Product
+from models import Product, AuditLog
 from extensions import db
 
 class ProductService:
@@ -26,6 +26,20 @@ class ProductService:
         return product
 
     @staticmethod
+    def _product_snapshot(product):
+        return {
+            "id": product.id,
+            "name": product.name,
+            "sku": product.sku,
+            "description": product.description,
+            "category": product.category,
+            "price": float(product.price),
+            "quantity": product.quantity,
+            "min_stock": product.min_stock,
+            "status": product.status,
+        }
+
+    @staticmethod
     def get_all(page=1, per_page=10, search=None, category=None, status=None):
         query = Product.query
 
@@ -45,13 +59,30 @@ class ProductService:
     def update(product_id, data):
         product = ProductService.get_by_id(product_id)
 
-        if "name" in data and not data["name"]: raise ValueError("Product name is required")
-        if "price" in data and data["price"] <= 0: raise ValueError("Product price must be greater than 0")
-        if "quantity" in data and data["quantity"] < 0: raise ValueError("Product quantity cannot be negative")
+        old_values = ProductService._product_snapshot(product)
+
+        if "name" in data and not data["name"]:
+            raise ValueError("Product name is required")
+
+        if "price" in data and data["price"] <= 0:
+            raise ValueError("Product price must be greater than 0")
+
+        if "quantity" in data and data["quantity"] < 0:
+            raise ValueError("Product quantity cannot be negative")
 
         for key, value in data.items():
             setattr(product, key, value)
 
+            audit_log = AuditLog(
+                table_name="products",
+                record_id=product.id,
+                action="UPDATE",
+                old_values=old_values,
+                new_values=ProductService._product_snapshot(product),
+                changed_by="system",
+            )
+
+        db.session.add(audit_log)
         db.session.commit()
 
         return product
