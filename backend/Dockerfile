@@ -1,4 +1,5 @@
-FROM python:3.12
+# FROM python:3.12
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -10,6 +11,10 @@ RUN python -c "import dotenv; print('DOTENV OK')"
 
 COPY . .
 
-RUN apt-get update && apt-get install -y bash
+EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+
+# RUN apt-get update && apt-get install -y bash
+
+#CMD ["flask", "run", "--host=0.0.0.0"]
