@@ -14,6 +14,7 @@ from extensions import db, migrate, api
 from routes import register_blueprints
 
 from models import User, Product, Console, Game, Controller  # noqa: F401
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -39,6 +40,8 @@ keycloak_openid = KeycloakOpenID(
 )
 
 KEYCLOAK_EXTERNAL = os.environ.get('KEYCLOAK_SERVER_URL_EXTERNAL', 'http://localhost:8080')
+
+CORS(app, origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')])
 
 
 @app.route('/')
@@ -80,12 +83,18 @@ def openid_connect():
             token['id_token'],
             options={"verify_signature": False}
         )
+        access_token = token['access_token']
+        # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
+        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        roles = access_payload.get('realm_access', {}).get('roles', [])
+        session['id_token'] = token['id_token']
 
         session_token = jwt.encode(
             {
                 'sub': id_token['sub'],
                 'email': id_token.get('email'),
                 'name': id_token.get('name'),
+                'roles': roles,
                 'exp': id_token['exp']
             },
             app.config['SECRET_KEY'],
@@ -97,6 +106,7 @@ def openid_connect():
             'email': id_token.get('email'),
             'name': id_token.get('name')
         }
+        
         session['session_token'] = session_token
         session['access_token'] = token['access_token']
         session['refresh_token'] = token.get('refresh_token')
@@ -148,14 +158,33 @@ def login():
 
 @app.route('/auth/logout', methods=['POST'])
 def logout():
-    refresh_token = request.json.get('refresh_token') if request.is_json else session.get('refresh_token')
+    id_token_hint = session.get('id_token')
+    refresh_token = session.get('refresh_token')
     session.clear()
+
     try:
         if refresh_token:
             keycloak_openid.logout(refresh_token)
     except Exception:
         pass
-    return jsonify({'message': 'Logged out'}), 200
+
+    session.clear()
+
+    # Si es JSON (SPA), devolver JSON
+    if request.is_json:
+        return jsonify({'message': 'Logged out'}), 200
+
+    # Si es form POST (HTML), cerrar también SSO de Keycloak
+    if id_token_hint:
+        logout_url = (
+            f"{KEYCLOAK_EXTERNAL}/realms/{keycloak_openid.realm_name}"
+            f"/protocol/openid-connect/logout?"
+            f"id_token_hint={id_token_hint}"
+            f"&post_logout_redirect_uri={quote(url_for('login_page', _external=True))}"
+        )
+        return redirect(logout_url)
+
+    return redirect(url_for('login_page'))
 
 
 @app.route('/auth/verify', methods=['POST'])
@@ -170,3 +199,36 @@ def verify_token():
         return jsonify({'valid': True, 'user': payload}), 200
     except jwt.InvalidTokenError:
         return jsonify({'valid': False}), 401
+
+@app.route('/auth/refresh', methods=['POST'])
+def refresh():
+    refresh_token = request.json.get('refresh_token') if request.is_json else None
+    if not refresh_token:
+        refresh_token = session.get('refresh_token')
+    if not refresh_token:
+        return jsonify({'error': 'No refresh token'}), 401
+    try:
+        new_token = keycloak_openid.refresh_token(refresh_token)
+        access_payload = jwt.decode(new_token['access_token'], options={"verify_signature": False})
+        id_payload = jwt.decode(new_token['id_token'], options={"verify_signature": False})
+        roles = access_payload.get('realm_access', {}).get('roles', [])
+        session_token = jwt.encode(
+            {
+                'sub': id_payload['sub'],
+                'email': id_payload.get('email'),
+                'name': id_payload.get('name'),
+                'roles': roles,
+                'exp': id_payload['exp']
+            },
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+        session['access_token'] = new_token['access_token']
+        session['refresh_token'] = new_token.get('refresh_token', refresh_token)
+        session['session_token'] = session_token
+        return jsonify({
+            'access_token': new_token['access_token'],
+            'session_token': session_token
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 401
