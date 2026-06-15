@@ -1,9 +1,0 @@
-.env
-
-# Ignore all IntelliJ IDEA module files
-*.iml
-
-# Ignore all Python compiled bytecode files
-*.pyc
-
-__pycache__/
