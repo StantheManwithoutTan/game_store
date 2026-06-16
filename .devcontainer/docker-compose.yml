@@ -35,7 +35,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "-c max_connections=200"
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init-keycloak-db.sql:/docker-entrypoint-initdb.d/01-init-keycloak-db.sql
@@ -48,6 +48,9 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
+    volumes:
+    - ../keycloak:/opt/keycloak/data/impor
+    container_name: keycloak
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -55,12 +58,15 @@ services:
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      - start-dev --import-realm
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
-    command: start-dev
+    volumes:
+      - ../keycloak:/opt/keycloak/data/import
 
 volumes:
   postgres-data:
