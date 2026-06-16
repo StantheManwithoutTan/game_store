@@ -264,7 +264,7 @@ git branch -d feature/setup
   - Usuario `store_vendor`: `product:view`, `stock:view`, `report:view`
   - Usuario `store_user`: `product:view`
 
-- [O] **Integrar validación JWT en Flask y proteger endpoints**
+- [X] **Integrar validación JWT en Flask y proteger endpoints**
   - Instalar `python-keycloak` o `authlib`
   - Crear decorador `@require_permission('scope')` para cada endpoint
   - Proteger `GET /api/products` con `product:view` y `POST/PUT/DELETE` con `product:manage`
