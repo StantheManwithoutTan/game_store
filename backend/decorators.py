@@ -9,6 +9,8 @@ def require_permission(*scopes):
             auth = request.headers.get('Authorization', '')
             token = auth.replace('Bearer ', '')
             if not token:
+                token = session.get('session_token', '')
+            if not token:
                 return jsonify({'error': 'Missing token'}), 401
             try:
                 # decodifica el token y las llaves secretas del usuario

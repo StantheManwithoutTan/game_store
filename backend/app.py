@@ -44,6 +44,8 @@ KEYCLOAK_EXTERNAL = os.environ.get('KEYCLOAK_SERVER_URL_EXTERNAL', 'http://local
 CORS(app, origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')])
 
 
+
+
 @app.route('/')
 def home():
     user = session.get('user')
@@ -160,7 +162,6 @@ def login():
 def logout():
     id_token_hint = session.get('id_token')
     refresh_token = session.get('refresh_token')
-    session.clear()
 
     try:
         if refresh_token:
@@ -232,3 +233,8 @@ def refresh():
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 401
+
+
+@app.route('/debug')
+def debug():
+    return jsonify(dict(session))
