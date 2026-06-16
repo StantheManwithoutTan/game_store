@@ -20,9 +20,6 @@ cd backend
 flask --app app run 
 
 
-
-
-
 Revisando los contenedores de docker:
 
 
@@ -48,7 +45,9 @@ docker inspect --format='{{json .State.Health}}' devcontainer-db-1
 docker compose down
     - baja todos los contenedores
 
+-- Pruebas unitarias
 
+Para ejecutar las pruebas unitarias:
 
 Para crear base de datos basado en contenido de backend (models.py, extensions.py, schemas.py)
 
@@ -63,18 +62,12 @@ docker compose -f docker-compose.yml exec backend flask db migrate -m "Initial m
 docker compose -f docker-compose.yml exec backend flask db upgrade
 
 
-
-
 Keycloak:
 Con el archivo realm-export.json ubicado en la carpeta keycloak, corre el contenedor normal como antes con docker compose up -d. Debe tomar la configuracion de ese archivo y recrearlo en el puerto 8080.
 
 En el caso de que se tiene que recrear de nuevo bajo modificaciones y ajustes al archivo original, ejecuta:
 
 docker compose -f .devcontainer/docker-compose.yml cp keycloak:/tmp/export/game-store-realm.json keycloak/realm-export.json
-
-
-
-
 
 
 Probando controles de acceso y averiguacion de keycloak:
@@ -102,14 +95,27 @@ curl.exe -s http://localhost:5000/api/products/ \ -H "Authorization: Bearer <ses
 curl.exe -s http://localhost:5000/api/products/
 (Esperado: 401)
 
+pytest backend/tests/test_product_service.py -v
 
+Para ejecutar las pruebas con cobertura:
 
+pytest backend/tests/test_product_service.py --cov=backend --cov-report=html
 
+El reporte HTML se genera en:
 
+backend/htmlcov/index.html
 
+-- Pruebas de integración y API
 
+Para ejecutar las pruebas de integración:
 
+pytest backend/tests/test_product_integration.py -v
 
+También se implementaron pruebas para los endpoints de la API relacionados con productos.
+
+Para ejecutar las pruebas de API:
+
+pytest backend/tests/test_product_api.py -v
 
 
 Tipos de Productos en tienda preliminar:
