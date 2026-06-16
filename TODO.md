@@ -297,21 +297,21 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/integration-tests-docker`
 
-- [ ] **Configurar Testcontainers y escribir 5 integration tests**
+- [x] **Configurar Testcontainers y escribir 5 integration tests**
   - `pip install testcontainers`
   - Fixture pytest que levanta PostgreSQL real con Testcontainers
   - Tests: crear, editar, eliminar producto en BD real; paginación; búsqueda y filtros
 
-- [ ] **Escribir 10 escenarios de API testing**
+- [x] **Escribir 10 escenarios de API testing**
   - `POST` válido → 201; `POST` inválido → 400/422
   - `GET` sin token → 401; con token sin permiso → 403
   - Validación de contratos: respuesta coincide con el schema OpenAPI
 
-- [ ] **Dockerizar Flask y actualizar Docker Compose**
+- [x] **Dockerizar Flask y actualizar Docker Compose**
   - Crear `Dockerfile` para Flask (multi-stage build recomendado)
   - Actualizar `docker-compose.yml` con servicios: `flask-app`, `postgres`, `keycloak`
 
-- [ ] **Abrir PR #2 con los tests y la dockerización**
+- [x] **Abrir PR #2 con los tests y la dockerización**
 
 ---
 
