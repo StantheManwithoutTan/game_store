@@ -48,6 +48,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
+    volumes:
+    - ../keycloak:/opt/keycloak/data/impor
     container_name: keycloak
     environment:
       KEYCLOAK_ADMIN: admin
@@ -57,8 +59,7 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
     command:
-      - start-dev
-      - --import-realm
+      - start-dev --import-realm
     ports:
       - "8080:8080"
     depends_on:
