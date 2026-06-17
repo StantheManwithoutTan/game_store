@@ -11,7 +11,7 @@ onMounted(async () => {
   if (code) {
     try {
       await authStore.loginWithKeycloak(code)
-      router.push('/')
+      router.push('/dashboard')
     } catch (error) {
       router.push('/login')
     }

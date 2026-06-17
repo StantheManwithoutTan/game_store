@@ -6,14 +6,16 @@ interface AuthState {
   idToken: string | null
   sessionToken: string | null
   user: any | null
+  refreshToken: string | null
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     accessToken: null,
     idToken: null,
-    sessionToken: null,
-    user: null
+    sessionToken: localStorage.getItem('session_token'),
+    user: null,
+    refreshToken: null
   }),
 
   actions: {
@@ -27,6 +29,7 @@ export const useAuthStore = defineStore('auth', {
         this.idToken = response.data.id_token
         this.sessionToken = response.data.session_token
         this.user = response.data.user
+        this.refreshToken = response.data.refresh_token
         
         // Store in localStorage
         localStorage.setItem('session_token', this.sessionToken)
@@ -46,6 +49,7 @@ export const useAuthStore = defineStore('auth', {
         this.idToken = null
         this.sessionToken = null
         this.user = null
+        this.refreshToken = null
         localStorage.removeItem('session_token')
       }
     }

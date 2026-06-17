@@ -128,13 +128,18 @@ def login():
         token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
-            redirect_uri=url_for('openid_connect', _external=True)
+            redirect_uri="http://localhost:5173/login/callback"
         )
 
         id_token = jwt.decode(
             token['id_token'],
             options={"verify_signature": False}
         )
+
+        access_token = token['access_token']
+        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        roles = access_payload.get('realm_access', {}).get('roles', [])
+
 
         session_token = jwt.encode(
             {
@@ -148,10 +153,11 @@ def login():
         )
 
         return jsonify({
-            'access_token': token['access_token'],
+            'access_token': access_token,
             'id_token': token['id_token'],
             'session_token': session_token,
-            'user': id_token
+            'user': id_token,
+            'refresh_token': token.get('refresh_token')
         }), 200
 
     except Exception as e:
@@ -161,7 +167,8 @@ def login():
 @app.route('/auth/logout', methods=['POST'])
 def logout():
     id_token_hint = session.get('id_token')
-    refresh_token = session.get('refresh_token')
+    refresh_token = request.json.get('refresh_token') if request.is_json else session.get('refresh_token')
+
 
     try:
         if refresh_token:
