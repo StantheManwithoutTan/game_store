@@ -17,7 +17,9 @@ jobs:
         run: pip install -r requirements.txt
       - name: Unit tests
         run: pytest tests/test_product_service.py -v --cov=services --cov=models --cov-report=xml
-      - name: Integration tests
+      - name: Api tests
         run: pytest tests/test_product_api.py -v --cov=services --cov=models --cov-append --cov-report=xml
+      - name: Integration tests
+        run: pytest tests/test_product_integration.py -v --cov=services --cov=models --cov-append --cov-report=xml
       - name: Upload coverage
         uses: codecov/codecov-action@v4
