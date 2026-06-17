@@ -339,24 +339,24 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/vue-frontend-playwright`
 
-- [ ] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
+- [x] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
   - `npm create vue@latest` (Vue 3 + Vue Router + Pinia)
   - Instalar `axios` y Keycloak JS adapter
   - Configurar rutas: `/login`, `/dashboard`, `/productos`, `/stock`
   - Implementar login OAuth2 que redirige a Keycloak
 
-- [ ] **Implementar UI completa del CRUD de Producto**
+- [x] **Implementar UI completa del CRUD de Producto**
   - Componente `ProductList`: tabla, paginación y búsqueda
   - Componente `ProductForm`: crear y editar
   - Eliminar producto con modal de confirmación
   - Dockerizar Vue (nginx + build) y agregarlo al `docker-compose.yml`
 
-- [ ] **Automatizar login y CRUD de Producto con Playwright**
+- [x] **Automatizar login y CRUD de Producto con Playwright**
   - `npm install @playwright/test && npx playwright install`
   - Test: flujo de login completo con Keycloak
   - Tests: crear, ver, editar y eliminar un producto desde la UI
 
-- [ ] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
+- [x] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
 
 ---
 
