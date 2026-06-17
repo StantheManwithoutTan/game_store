@@ -62,5 +62,25 @@ services:
         condition: service_healthy
     command: start-dev
 
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins
+
+    user: root
+
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+      # Give Jenkins access to your repository
+      - ../:/workspace
+
+      # Allow Jenkins to control Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   postgres-data:
+  jenkins_home:

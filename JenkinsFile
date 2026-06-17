@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Build') {
+            steps {
+                dir('backend') { sh 'pip install -r requirements.txt' }
+            }
+        }
+        stage('Unit Tests') {
+            steps {
+                dir('backend') {
+                    sh 'pytest tests/test_product_service.py -v --junitxml=../results/unit.xml'
+                }
+            }
+            post { always { junit 'results/unit.xml' } }
+        }
+        stage('Api Tests') {
+            steps {
+                dir('backend') {
+                    sh 'pytest tests/test_product_api.py -v --junitxml=../results/api.xml'
+                }
+            }
+            post { always { junit 'results/api.xml' } }
+        }
+        stage('Integration Tests') {
+            steps {
+                dir('backend') {
+                    sh 'pytest tests/test_product_integration.py -v --junitxml=../results/integration.xml'
+                }
+            }
+            post { always { junit 'results/integration.xml' } }
+        }
+    }
+}
