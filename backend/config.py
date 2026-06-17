@@ -3,11 +3,11 @@ import os
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{os.environ['POSTGRES_USER']}:"
-        f"{os.environ['POSTGRES_PASSWORD']}@"
+        f"postgresql://{os.environ.get('POSTGRES_USER', 'postgres')}:"
+        f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}@"
         f"{os.environ.get('DATABASE_HOST', 'db')}:"
         f"{os.environ.get('DATABASE_PORT', '5432')}/"
-        f"{os.environ['POSTGRES_DB']}"
+        f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
