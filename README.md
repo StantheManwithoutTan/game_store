@@ -122,3 +122,117 @@ Tipos de Productos en tienda preliminar:
 - Game
 - Console
 - Controller
+
+# Frontend (Vue 3)
+
+El frontend del proyecto está desarrollado utilizando Vue 3 + Vite.
+
+Para ejecutar el frontend localmente:
+
+```bash
+cd game_store_frontend
+npm install
+npm run dev
+```
+
+La aplicación estará disponible en:
+
+```
+http://localhost:5173
+```
+
+## Funcionalidades implementadas
+
+* Login mediante Keycloak (OpenID Connect).
+* Dashboard inicial.
+* Vista de Productos.
+* Vista de Stock.
+* Navegación mediante Vue Router.
+* Manejo de estado con Pinia.
+
+---
+
+# Keycloak
+
+Realm utilizado:
+
+```
+game-store
+```
+
+Cliente utilizado:
+
+```
+game-store-client
+```
+
+Credenciales administrativas de desarrollo:
+
+```
+Usuario: admin
+Contraseña: admin
+```
+
+Una vez autenticado, el usuario es redirigido automáticamente al Dashboard.
+
+---
+
+# Swagger
+
+La documentación interactiva de la API se encuentra disponible en:
+
+```
+http://localhost:5000/api/docs
+```
+
+---
+
+# Pruebas E2E con Playwright
+
+Instalar Playwright:
+
+```bash
+npm install -D @playwright/test
+npx playwright install
+```
+
+Ejecutar las pruebas:
+
+```bash
+npx playwright test
+```
+
+Prueba implementada actualmente:
+
+* Verificación de carga de la página de Login.
+
+Resultado esperado:
+
+```
+1 passed
+```
+
+---
+
+# Estado del Proyecto (Día 7)
+
+## Completado
+
+* Docker Compose configurado.
+* PostgreSQL funcionando.
+* Backend Flask funcionando.
+* Frontend Vue funcionando.
+* Integración con Keycloak.
+* Login mediante OpenID Connect.
+* Dashboard inicial.
+* Gestión inicial de Productos.
+* Gestión inicial de Stock.
+* Configuración de Playwright.
+* Primera prueba E2E ejecutada exitosamente.
+
+## Próximos pasos
+
+* Integrar el CRUD real de productos desde el frontend.
+* Implementar gestión completa de stock.
+* Ampliar cobertura E2E con Playwright.
+* Incorporar protección basada en roles en la interfaz de usuario.
