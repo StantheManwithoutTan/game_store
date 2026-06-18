@@ -323,7 +323,7 @@ git branch -d feature/setup
   - Archivo `.github/workflows/ci.yml`
   - Steps: checkout → instalar dependencias → unit tests → integration tests → publicar reporte de cobertura
 
-- [O] **Crear pipeline Jenkins funcional**
+- [X] **Crear pipeline Jenkins funcional**
   - `Jenkinsfile` con stages: Checkout, Build, Unit Tests, Integration Tests
   - Verificar que los stages se visualizan en Blue Ocean o Stage View
 
