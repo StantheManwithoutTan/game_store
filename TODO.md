@@ -254,16 +254,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/keycloak-auth`
 
-- [ ] **Agregar Keycloak al Docker Compose y configurar el realm**
+- [X] **Agregar Keycloak al Docker Compose y configurar el realm**
   - Servicio Keycloak con imagen `quay.io/keycloak/keycloak`
   - Crear realm `inventory-realm` y client `inventory-api` (Authorization Code + PKCE)
   - Crear todos los scopes: `product:view`, `product:manage`, `stock:view`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
 
-- [ ] **Crear usuarios y asignar permisos en Keycloak**
-  - Usuario `admin`: `product:manage`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
-  - Usuario `empleado`: `product:view`, `stock:view`, `report:view`
+- [X] **Crear usuarios y asignar permisos en Keycloak**
+  - Usuario `store_admin`: `product:manage`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
+  - Usuario `store_vendor`: `product:view`, `stock:view`, `report:view`
+  - Usuario `store_user`: `product:view`
 
-- [ ] **Integrar validación JWT en Flask y proteger endpoints**
+- [X] **Integrar validación JWT en Flask y proteger endpoints**
   - Instalar `python-keycloak` o `authlib`
   - Crear decorador `@require_permission('scope')` para cada endpoint
   - Proteger `GET /api/products` con `product:view` y `POST/PUT/DELETE` con `product:manage`
@@ -338,24 +339,24 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/vue-frontend-playwright`
 
-- [ ] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
+- [x] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
   - `npm create vue@latest` (Vue 3 + Vue Router + Pinia)
   - Instalar `axios` y Keycloak JS adapter
   - Configurar rutas: `/login`, `/dashboard`, `/productos`, `/stock`
   - Implementar login OAuth2 que redirige a Keycloak
 
-- [ ] **Implementar UI completa del CRUD de Producto**
+- [x] **Implementar UI completa del CRUD de Producto**
   - Componente `ProductList`: tabla, paginación y búsqueda
   - Componente `ProductForm`: crear y editar
   - Eliminar producto con modal de confirmación
   - Dockerizar Vue (nginx + build) y agregarlo al `docker-compose.yml`
 
-- [ ] **Automatizar login y CRUD de Producto con Playwright**
+- [x] **Automatizar login y CRUD de Producto con Playwright**
   - `npm install @playwright/test && npx playwright install`
   - Test: flujo de login completo con Keycloak
   - Tests: crear, ver, editar y eliminar un producto desde la UI
 
-- [ ] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
+- [x] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
 
 ---
 

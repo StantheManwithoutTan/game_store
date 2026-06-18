@@ -20,9 +20,6 @@ cd backend
 flask --app app run 
 
 
-
-
-
 Revisando los contenedores de docker:
 
 
@@ -51,6 +48,52 @@ docker compose down
 -- Pruebas unitarias
 
 Para ejecutar las pruebas unitarias:
+
+Para crear base de datos basado en contenido de backend (models.py, extensions.py, schemas.py)
+
+
+# 1. Inicializar el repositorio de migraciones (crea carpeta migrations/)
+docker compose -f docker-compose.yml exec backend flask db init
+
+# 2. Generar script de migración automática basado en models.py
+docker compose -f docker-compose.yml exec backend flask db migrate -m "Initial migration"
+
+# 3. Aplicar la migración (crea las tablas en PostgreSQL)
+docker compose -f docker-compose.yml exec backend flask db upgrade
+
+
+Keycloak:
+Con el archivo realm-export.json ubicado en la carpeta keycloak, corre el contenedor normal como antes con docker compose up -d. Debe tomar la configuracion de ese archivo y recrearlo en el puerto 8080.
+
+En el caso de que se tiene que recrear de nuevo bajo modificaciones y ajustes al archivo original, ejecuta:
+
+docker compose -f .devcontainer/docker-compose.yml cp keycloak:/tmp/export/game-store-realm.json keycloak/realm-export.json
+
+
+Probando controles de acceso y averiguacion de keycloak:
+
+curl -s http://localhost:8080/realms/game-store/.well-known/openid-configuration
+    - Pruebe que Keycloak responde
+
+
+- Probar GET /api/products (requiere product:view)
+
+curl.exe -s http://localhost:5000/api/products/ \ -H "Authorization: Bearer <session_token>"
+(Esperado: 200 con lista de productos)
+
+- Probar POST /api/products (requiere product:manage, prueba con admin y usuario)
+
+1. $token = "<session-token>"
+
+2. $body = @{ name = "Test Game 1"; sku = "GAME-001"; price = 39.99 } | ConvertTo-Json
+
+3. Invoke-RestMethod -Uri http://localhost:5000/api/products/ -Method Post -Headers @{Authorization = "Bearer $token"} -ContentType "application/json" -Body $body
+(Esperado: 201 si tiene product:manage, 403 si no)
+
+- Probar sin token
+
+curl.exe -s http://localhost:5000/api/products/
+(Esperado: 401)
 
 pytest backend/tests/test_product_service.py -v
 
@@ -88,3 +131,118 @@ Como probar Jenkins:
 curl -X POST -u usuario:token \
   -F "jenkinsfile=<Jenkinsfile" \
   "http://localhost:8080/pipeline-syntax/validate"
+
+
+# Frontend (Vue 3)
+
+El frontend del proyecto está desarrollado utilizando Vue 3 + Vite.
+
+Para ejecutar el frontend localmente:
+
+```bash
+cd game_store_frontend
+npm install
+npm run dev
+```
+
+La aplicación estará disponible en:
+
+```
+http://localhost:5173
+```
+
+## Funcionalidades implementadas
+
+* Login mediante Keycloak (OpenID Connect).
+* Dashboard inicial.
+* Vista de Productos.
+* Vista de Stock.
+* Navegación mediante Vue Router.
+* Manejo de estado con Pinia.
+
+---
+
+# Keycloak
+
+Realm utilizado:
+
+```
+game-store
+```
+
+Cliente utilizado:
+
+```
+game-store-client
+```
+
+Credenciales administrativas de desarrollo:
+
+```
+Usuario: admin
+Contraseña: admin
+```
+
+Una vez autenticado, el usuario es redirigido automáticamente al Dashboard.
+
+---
+
+# Swagger
+
+La documentación interactiva de la API se encuentra disponible en:
+
+```
+http://localhost:5000/api/docs
+```
+
+---
+
+# Pruebas E2E con Playwright
+
+Instalar Playwright:
+
+```bash
+npm install -D @playwright/test
+npx playwright install
+```
+
+Ejecutar las pruebas:
+
+```bash
+npx playwright test
+```
+
+Prueba implementada actualmente:
+
+* Verificación de carga de la página de Login.
+
+Resultado esperado:
+
+```
+1 passed
+```
+
+---
+
+# Estado del Proyecto (Día 7)
+
+## Completado
+
+* Docker Compose configurado.
+* PostgreSQL funcionando.
+* Backend Flask funcionando.
+* Frontend Vue funcionando.
+* Integración con Keycloak.
+* Login mediante OpenID Connect.
+* Dashboard inicial.
+* Gestión inicial de Productos.
+* Gestión inicial de Stock.
+* Configuración de Playwright.
+* Primera prueba E2E ejecutada exitosamente.
+
+## Próximos pasos
+
+* Integrar el CRUD real de productos desde el frontend.
+* Implementar gestión completa de stock.
+* Ampliar cobertura E2E con Playwright.
+* Incorporar protección basada en roles en la interfaz de usuario.

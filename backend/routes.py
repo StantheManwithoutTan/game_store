@@ -6,6 +6,7 @@ from extensions import db
 from models import Game
 from schemas import GameSchema, ProductSchema
 from services.product_service import ProductService
+from decorators import require_permission
 
 
 blp_games = Blueprint(
@@ -17,8 +18,9 @@ blp_products = Blueprint(
 )
 
 
-@blp_products.route("/")
+@blp_products.route("/", strict_slashes=False)
 class ProductList(MethodView):
+    @require_permission('product:view')
     @blp_products.response(200, ProductSchema(many=True))
     def get(self):
         page = request.args.get("page", 1, type=int)
@@ -37,6 +39,7 @@ class ProductList(MethodView):
 
         return products.items
 
+    @require_permission('product:manage')
     @blp_products.arguments(ProductSchema)
     @blp_products.response(201, ProductSchema)
     def post(self, data):
@@ -48,10 +51,12 @@ class ProductList(MethodView):
 
 @blp_products.route("/<int:product_id>")
 class ProductById(MethodView):
+    @require_permission('product:view')
     @blp_products.response(200, ProductSchema)
     def get(self, product_id):
         return ProductService.get_by_id(product_id)
 
+    @require_permission('product:manage')
     @blp_products.arguments(ProductSchema(partial=True))
     @blp_products.response(200, ProductSchema)
     def put(self, data, product_id):
@@ -60,6 +65,7 @@ class ProductById(MethodView):
         except ValueError as error:
             abort(400, message=str(error))
 
+    @require_permission('product:manage')
     @blp_products.response(204)
     def delete(self, product_id):
         ProductService.delete(product_id)

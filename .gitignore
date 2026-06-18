@@ -16,5 +16,3 @@ keycloak/realm-export.json
 backend/migrations/
 
 .coverage
-
-nul
