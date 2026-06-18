@@ -13,7 +13,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                docker compose -f .devcontainer/docker-compose.yml exec -T backend \
+                docker exec devcontainer-backend-1 \
                 pip install -r requirements.txt
                 '''
             }
@@ -22,7 +22,7 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 sh '''
-                docker compose -f .devcontainer/docker-compose.yml exec -T backend \
+                docker exec devcontainer-backend-1 \
                 pytest tests/test_product_service.py \
                 -v \
                 --junitxml=/app/results/unit.xml
@@ -39,7 +39,7 @@ pipeline {
         stage('API Tests') {
             steps {
                 sh '''
-                docker compose -f .devcontainer/docker-compose.yml exec -T backend \
+                docker exec devcontainer-backend-1 \
                 pytest tests/test_product_api.py \
                 -v \
                 --junitxml=/app/results/api.xml
@@ -56,7 +56,7 @@ pipeline {
         stage('Integration Tests') {
             steps {
                 sh '''
-                docker compose -f .devcontainer/docker-compose.yml exec -T backend \
+                docker exec devcontainer-backend-1 \
                 pytest tests/test_product_integration.py \
                 -v \
                 --junitxml=/app/results/integration.xml

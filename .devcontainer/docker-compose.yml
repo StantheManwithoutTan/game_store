@@ -63,7 +63,10 @@ services:
     command: start-dev
 
   jenkins:
-    image: jenkins/jenkins:lts-jdk21
+    build:
+      context: .
+      dockerfile: ../Dockerfile.jenkins
+
     container_name: jenkins
 
     user: root
@@ -74,12 +77,9 @@ services:
 
     volumes:
       - jenkins_home:/var/jenkins_home
-
-      # Give Jenkins access to your repository
       - ../:/workspace
-
-      # Allow Jenkins to control Docker
       - /var/run/docker.sock:/var/run/docker.sock
+
   prometheus:
     image: prom/prometheus:latest
     volumes:
