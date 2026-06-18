@@ -28,7 +28,7 @@ class ControllerSchema(Schema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
     wireless = fields.Bool(load_default=True)
-    price = fields.Decimal(as_string=True, required=True)
+    price = fields.Decimal(required=True)
     stock = fields.Int(load_default=0)
     console_id = fields.Int(required=True)
 

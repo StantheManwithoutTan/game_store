@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API = 'http://localhost:5000/api/products/'
+const API = 'http://localhost:5000/api/products'
 
 interface Product {
   id: number; name: string; sku: string; description?: string
@@ -61,7 +61,16 @@ function openCreateForm() {
 
 function openEditForm(p: Product) {
   editingProduct.value = p
-  form.value = { ...p, price: parseFloat(p.price) }
+  form.value = {
+    name: p.name,
+    sku: p.sku,
+    price: parseFloat(p.price),
+    description: p.description || '',
+    category: p.category || '',
+    quantity: p.quantity,
+    min_stock: p.min_stock,
+    status: p.status
+  }
   showForm.value = true
 }
 
@@ -119,24 +128,63 @@ onMounted(fetchProducts)
     <div v-if="showForm" class="modal">
       <div class="modal-content">
         <h2>{{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
-        <form @submit.prevent="saveProduct">
-          <input v-model="form.name" placeholder="Nombre *" required />
-          <input v-model="form.sku" placeholder="SKU *" required :disabled="!!editingProduct" />
-          <input v-model.number="form.price" type="number" step="0.01" placeholder="Precio *" required />
-          <input v-model="form.description" placeholder="Descripción" />
-          <input v-model="form.category" placeholder="Categoría" />
-          <input v-model.number="form.quantity" type="number" placeholder="Cantidad" />
-          <input v-model.number="form.min_stock" type="number" placeholder="Stock mínimo" />
-          <select v-model="form.status">
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-            <option value="discontinued">Descontinuado</option>
-          </select>
+                <form @submit.prevent="saveProduct" class="product-form">
+          <fieldset>
+            <legend>Información Básica</legend>
+            <div class="form-group">
+              <label for="name">Nombre </label>
+              <input id="name" v-model="form.name" placeholder="Nombre del producto" required />
+            </div>
+            <div class="form-group">
+              <label for="sku">SKU </label>
+              <input id="sku" v-model="form.sku" placeholder="Código único" required :disabled="!!editingProduct" />
+            </div>
+            <div class="form-group">
+              <label for="description">Descripción </label>
+              <input id="description" v-model="form.description" placeholder="Descripción del producto" />
+            </div>
+            <div class="form-group">
+              <label for="category">Categoría </label>
+              <input id="category" v-model="form.category" placeholder="Ej: Videojuegos, Consolas, Accesorios" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Precio e Inventario</legend>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="price">Precio (decimal)</label>
+                <input id="price" v-model.number="form.price" type="number" step="0.01" placeholder="0.00" required />
+              </div>
+              <div class="form-group">
+                <label for="quantity">Cantidad </label>
+                <input id="quantity" v-model.number="form.quantity" type="number" placeholder="0" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="min_stock">Stock mínimo </label>
+              <input id="min_stock" v-model.number="form.min_stock" type="number" placeholder="0" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Estado</legend>
+            <div class="form-group">
+              <label for="status">Estado del producto </label>
+              <select id="status" v-model="form.status">
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+                <option value="discontinued">Descontinuado</option>
+              </select>
+            </div>
+          </fieldset>
+
           <div class="form-actions">
-            <button type="submit" :disabled="loading">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
-            <button type="button" @click="closeForm">Cancelar</button>
+            <button type="submit" :disabled="loading" class="btn-primary">{{ loading ? 'Guardando...' : 'Guardar' }}</button>
+            <button type="button" @click="closeForm" class="btn-secondary">Cancelar</button>
           </div>
         </form>
+
       </div>
     </div>
 
@@ -154,6 +202,7 @@ onMounted(fetchProducts)
           <th>Cantidad</th>
           <th>Stock Min</th>
           <th>Estado</th>
+          <th>Descripcion</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -166,6 +215,7 @@ onMounted(fetchProducts)
           <td>{{ p.quantity }}</td>
           <td>{{ p.min_stock }}</td>
           <td>{{ p.status }}</td>
+          <td>{{ p.description }}</td>
           <td>
             <button @click="openEditForm(p)">Editar</button>
             <button @click="deleteProduct(p.id)" class="danger">Eliminar</button>

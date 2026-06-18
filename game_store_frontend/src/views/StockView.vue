@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API = 'http://localhost:5000/api/products/'
+const API = 'http://localhost:5000/api/products'
 
 interface Product {
   id: number; name: string; sku: string; quantity: number
