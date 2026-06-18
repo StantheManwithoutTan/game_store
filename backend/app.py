@@ -17,33 +17,40 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 from models import User, Product, Console, Game, Controller  # noqa: F401
 
-metrics = None
-
 def create_app(config_class=Config):
-    global metrics
+
     app = Flask(__name__)
+
     app.config.from_object(config_class)
+
     CORS(app)
+
     db.init_app(app)
-    migrate.init_app(app,db)
+
+    migrate.init_app(app, db)
+
     api.init_app(app)
-    metrics = PrometheusMetrics(app)
+
     register_blueprints(api)
-    
+
+    metrics = PrometheusMetrics(app)
+
+    request_counter = metrics.counter(
+        'test_requests_total',
+        'Total requests',
+        labels={'path': lambda: request.path}
+    )
+
+    @app.route('/')
+    @request_counter
+    def home():
+        return "Hello, World!"
 
     return app
 
 app = create_app()
 
-request_counter = metrics.counter(
-    'test_requests_total', 'Total requests',
-    labels={'path': lambda: request.path}
-)
 
-@app.route('/')
-def home():
-    # Renders the index.html file from the templates folder
-    return "Hello, World!"
 
 """"
 @app.route('/auth/login', methods=['POST'])
