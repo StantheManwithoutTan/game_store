@@ -17,8 +17,11 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 from models import User, Product, Console, Game, Controller  # noqa: F401
 
-def create_app(config_class=Config):
+metrics = None
+_request_counter_registered = False
 
+def create_app(config_class=Config):
+    global metrics
     app = Flask(__name__)
 
     app.config.from_object(config_class)
@@ -35,14 +38,7 @@ def create_app(config_class=Config):
 
     metrics = PrometheusMetrics(app)
 
-    request_counter = metrics.counter(
-        'test_requests_total',
-        'Total requests',
-        labels={'path': lambda: request.path}
-    )
-
     @app.route('/')
-    @request_counter
     def home():
         return "Hello, World!"
 
