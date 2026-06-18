@@ -18,7 +18,7 @@ blp_products = Blueprint(
 )
 
 
-@blp_products.route("/")
+@blp_products.route("/", strict_slashes=False)
 class ProductList(MethodView):
     @require_permission('product:view')
     @blp_products.response(200, ProductSchema(many=True))

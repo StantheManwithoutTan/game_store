@@ -41,7 +41,12 @@ keycloak_openid = KeycloakOpenID(
 
 KEYCLOAK_EXTERNAL = os.environ.get('KEYCLOAK_SERVER_URL_EXTERNAL', 'http://localhost:8080')
 
-CORS(app, origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')])
+CORS(
+    app,
+    origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')],
+    supports_credentials=True,
+    automatic_options=True
+)
 
 
 
@@ -146,6 +151,7 @@ def login():
                 'sub': id_token['sub'],
                 'email': id_token.get('email'),
                 'name': id_token.get('name'),
+                'roles': roles,
                 'exp': id_token['exp']
             },
             app.config['SECRET_KEY'],
