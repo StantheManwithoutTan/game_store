@@ -319,15 +319,15 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/cicd-grafana`
 
-- [ ] **Crear pipeline GitHub Actions con build y tests automáticos**
+- [X] **Crear pipeline GitHub Actions con build y tests automáticos**
   - Archivo `.github/workflows/ci.yml`
   - Steps: checkout → instalar dependencias → unit tests → integration tests → publicar reporte de cobertura
 
-- [ ] **Crear pipeline Jenkins funcional**
+- [O] **Crear pipeline Jenkins funcional**
   - `Jenkinsfile` con stages: Checkout, Build, Unit Tests, Integration Tests
   - Verificar que los stages se visualizan en Blue Ocean o Stage View
 
-- [ ] **Configurar Grafana con primer dashboard operativo**
+- [X] **Configurar Grafana con primer dashboard operativo**
   - Agregar Prometheus y Grafana al `docker-compose.yml`
   - Instalar `prometheus-flask-exporter` para exponer métricas de la app
   - Crear dashboard básico en Grafana: request rate y latencia promedio
