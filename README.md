@@ -123,6 +123,16 @@ Tipos de Productos en tienda preliminar:
 - Console
 - Controller
 
+
+
+
+Como probar Jenkins:
+
+curl -X POST -u usuario:token \
+  -F "jenkinsfile=<Jenkinsfile" \
+  "http://localhost:8080/pipeline-syntax/validate"
+
+
 # Frontend (Vue 3)
 
 El frontend del proyecto está desarrollado utilizando Vue 3 + Vite.

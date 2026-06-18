@@ -298,21 +298,21 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/integration-tests-docker`
 
-- [x] **Configurar Testcontainers y escribir 5 integration tests**
+- [X] **Configurar Testcontainers y escribir 5 integration tests**
   - `pip install testcontainers`
   - Fixture pytest que levanta PostgreSQL real con Testcontainers
   - Tests: crear, editar, eliminar producto en BD real; paginación; búsqueda y filtros
 
-- [x] **Escribir 10 escenarios de API testing**
+- [X] **Escribir 10 escenarios de API testing**
   - `POST` válido → 201; `POST` inválido → 400/422
   - `GET` sin token → 401; con token sin permiso → 403
   - Validación de contratos: respuesta coincide con el schema OpenAPI
 
-- [x] **Dockerizar Flask y actualizar Docker Compose**
+- [X] **Dockerizar Flask y actualizar Docker Compose**
   - Crear `Dockerfile` para Flask (multi-stage build recomendado)
   - Actualizar `docker-compose.yml` con servicios: `flask-app`, `postgres`, `keycloak`
 
-- [x] **Abrir PR #2 con los tests y la dockerización**
+- [X] **Abrir PR #2 con los tests y la dockerización**
 
 ---
 
@@ -320,15 +320,15 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/cicd-grafana`
 
-- [ ] **Crear pipeline GitHub Actions con build y tests automáticos**
+- [X] **Crear pipeline GitHub Actions con build y tests automáticos**
   - Archivo `.github/workflows/ci.yml`
   - Steps: checkout → instalar dependencias → unit tests → integration tests → publicar reporte de cobertura
 
-- [ ] **Crear pipeline Jenkins funcional**
+- [X] **Crear pipeline Jenkins funcional**
   - `Jenkinsfile` con stages: Checkout, Build, Unit Tests, Integration Tests
   - Verificar que los stages se visualizan en Blue Ocean o Stage View
 
-- [ ] **Configurar Grafana con primer dashboard operativo**
+- [X] **Configurar Grafana con primer dashboard operativo**
   - Agregar Prometheus y Grafana al `docker-compose.yml`
   - Instalar `prometheus-flask-exporter` para exponer métricas de la app
   - Crear dashboard básico en Grafana: request rate y latencia promedio

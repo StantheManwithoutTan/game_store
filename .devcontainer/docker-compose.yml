@@ -7,6 +7,7 @@ services:
       - ../backend/.env
     volumes:
       - ../backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "5000:5000"
     depends_on:
@@ -67,5 +68,46 @@ services:
     volumes:
       - ../keycloak:/opt/keycloak/data/import
 
+  jenkins:
+    build:
+      context: .
+      dockerfile: ../Dockerfile.jenkins
+
+    container_name: jenkins
+
+    user: root
+
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ../:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+
 volumes:
   postgres-data:
+  jenkins_home:
+  grafana-storage:
+  prometheus-data:

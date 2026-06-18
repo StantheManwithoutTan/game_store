@@ -1,0 +1,25 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Unit tests
+        run: pytest tests/test_product_service.py -v --cov=services --cov=models --cov-report=xml
+      - name: Api tests
+        run: pytest tests/test_product_api.py -v --cov=services --cov=models --cov-append --cov-report=xml
+      - name: Integration tests
+        run: pytest tests/test_product_integration.py -v --cov=services --cov=models --cov-append --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4

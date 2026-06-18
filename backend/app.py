@@ -12,20 +12,28 @@ from flask_cors import CORS
 from config import Config
 from extensions import db, migrate, api
 from routes import register_blueprints
+from prometheus_flask_exporter import PrometheusMetrics
 
 from models import User, Product, Console, Game, Controller  # noqa: F401
 from urllib.parse import quote
 
 load_dotenv()
 
+metrics = None
+_request_counter_registered = False
+
 def create_app(config_class=Config):
+    global metrics
     app = Flask(__name__)
+
     app.config.from_object(config_class)
+
     CORS(app)
 
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
+
     register_blueprints(api)
 
     return app
