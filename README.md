@@ -79,3 +79,12 @@ Tipos de Productos en tienda preliminar:
 - Game
 - Console
 - Controller
+
+
+
+
+Como probar Jenkins:
+
+curl -X POST -u usuario:token \
+  -F "jenkinsfile=<Jenkinsfile" \
+  "http://localhost:8080/pipeline-syntax/validate"

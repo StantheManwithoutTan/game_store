@@ -35,7 +35,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "-c max_connections=200"
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init-keycloak-db.sql:/docker-entrypoint-initdb.d/01-init-keycloak-db.sql
@@ -80,6 +80,21 @@ services:
 
       # Allow Jenkins to control Docker
       - /var/run/docker.sock:/var/run/docker.sock
+  prometheus:
+      image: prom/prometheus:latest
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      ports:
+        - "9090:9090"
+      depends_on:
+        - backend
+
+  grafana:
+      image: grafana/grafana:latest
+      ports:
+        - "3000:3000"
+      depends_on:
+        - prometheus
 
 volumes:
   postgres-data:

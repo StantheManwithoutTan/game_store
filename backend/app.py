@@ -12,35 +12,33 @@ from flask_cors import CORS
 from config import Config
 from extensions import db, migrate, api
 from routes import register_blueprints
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 from models import User, Product, Console, Game, Controller  # noqa: F401
 
+metrics = None
+
 def create_app(config_class=Config):
+    global metrics
     app = Flask(__name__)
     app.config.from_object(config_class)
     CORS(app)
-
-    """
-    app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
-
-    # Keycloak configuration
-    keycloak_openid = KeycloakOpenID(
-        server_url=os.environ.get('KEYCLOAK_SERVER_URL'),
-        client_id=os.environ.get('KEYCLOAK_CLIENT_ID'),
-        realm_name=os.environ.get('KEYCLOAK_REALM'),
-        client_secret_key=os.environ.get('KEYCLOAK_CLIENT_SECRET')
-    )
-    """
     db.init_app(app)
     migrate.init_app(app,db)
     api.init_app(app)
+    metrics = PrometheusMetrics(app)
     register_blueprints(api)
     
 
     return app
 
 app = create_app()
+
+request_counter = metrics.counter(
+    'test_requests_total', 'Total requests',
+    labels={'path': lambda: request.path}
+)
 
 @app.route('/')
 def home():
