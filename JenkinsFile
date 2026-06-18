@@ -21,11 +21,23 @@ pipeline {
 
         stage('Unit Tests') {
             steps {
+
+                sh '''
+                docker exec devcontainer-backend-1 \
+                mkdir -p /app/results
+                '''
+
                 sh '''
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_service.py \
                 -v \
                 --junitxml=/app/results/unit.xml
+                '''
+
+                sh '''
+                docker cp \
+                devcontainer-backend-1:/app/results/unit.xml \
+                results/unit.xml
                 '''
             }
 
@@ -37,12 +49,20 @@ pipeline {
         }
 
         stage('API Tests') {
+
             steps {
+
                 sh '''
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_api.py \
                 -v \
                 --junitxml=/app/results/api.xml
+                '''
+
+                sh '''
+                docker cp \
+                devcontainer-backend-1:/app/results/api.xml \
+                results/api.xml
                 '''
             }
 
@@ -54,12 +74,20 @@ pipeline {
         }
 
         stage('Integration Tests') {
+
             steps {
+
                 sh '''
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_integration.py \
                 -v \
                 --junitxml=/app/results/integration.xml
+                '''
+
+                sh '''
+                docker cp \
+                devcontainer-backend-1:/app/results/integration.xml \
+                results/integration.xml
                 '''
             }
 
