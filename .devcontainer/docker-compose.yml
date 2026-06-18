@@ -91,14 +91,14 @@ services:
       - backend
 
   grafana:
-  image: grafana/grafana:latest
-  ports:
-    - "3000:3000"
-  volumes:
-    - ../grafana/datasources:/etc/grafana/provisioning/datasources
-    - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
-  depends_on:
-    - prometheus
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   postgres-data:

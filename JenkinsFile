@@ -1,38 +1,73 @@
 pipeline {
+
     agent any
 
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
-        stage('Build') {
+
+        stage('Prepare') {
             steps {
-                dir('backend') { sh 'pip install -r requirements.txt' }
+                sh 'mkdir -p results'
             }
         }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                docker compose exec -T backend \
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
         stage('Unit Tests') {
             steps {
-                dir('backend') {
-                    sh 'pytest tests/test_product_service.py -v --junitxml=../results/unit.xml'
+                sh '''
+                docker compose exec -T backend \
+                pytest tests/test_product_service.py \
+                -v \
+                --junitxml=/app/results/unit.xml
+                '''
+            }
+
+            post {
+                always {
+                    junit 'results/unit.xml'
                 }
             }
-            post { always { junit 'results/unit.xml' } }
         }
-        stage('Api Tests') {
+
+        stage('API Tests') {
             steps {
-                dir('backend') {
-                    sh 'pytest tests/test_product_api.py -v --junitxml=../results/api.xml'
+                sh '''
+                docker compose exec -T backend \
+                pytest tests/test_product_api.py \
+                -v \
+                --junitxml=/app/results/api.xml
+                '''
+            }
+
+            post {
+                always {
+                    junit 'results/api.xml'
                 }
             }
-            post { always { junit 'results/api.xml' } }
         }
+
         stage('Integration Tests') {
             steps {
-                dir('backend') {
-                    sh 'pytest tests/test_product_integration.py -v --junitxml=../results/integration.xml'
+                sh '''
+                docker compose exec -T backend \
+                pytest tests/test_product_integration.py \
+                -v \
+                --junitxml=/app/results/integration.xml
+                '''
+            }
+
+            post {
+                always {
+                    junit 'results/integration.xml'
                 }
             }
-            post { always { junit 'results/integration.xml' } }
         }
     }
 }
