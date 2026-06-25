@@ -29,7 +29,7 @@ def require_permission(*scopes):
 
             # Crea arreglo vacio
             user_roles = set(payload.get('roles', []))
-            # Si no encuentra el rol de usuario con el scope, ponga un error 403 
+            # Si no encuentra el rol de usuario con el scope (product,manage como ejemplo), ponga un error 403 
             if not any(s in user_roles for s in scopes):
                 return jsonify({'error': 'Forbidden'}), 403
 

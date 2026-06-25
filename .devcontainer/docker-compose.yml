@@ -7,6 +7,7 @@ services:
       - ../backend/.env
     volumes:
       - ../backend:/app
+      # Agregamos el socket de docker al backend para que Jenkins puede crear nuevos contenedores para realizar las pruebas.
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "5000:5000"
@@ -21,7 +22,8 @@ services:
       context: ../game_store_frontend
     volumes:
       - ../game_store_frontend:/app
-      - /app/node_modules  # Exclude host node_modules; use container's
+      # excluimos el node_modules del frontend para que usa el del contenedor para evitar conflictos
+      - /app/node_modules
     ports:
       - "5173:5173"
 
@@ -36,6 +38,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "-c max_connections=200"
     ports:
+      #usamos 5433 para evitar colisiones posibles con conexiones locales de postgres
       - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -70,6 +73,7 @@ services:
 
   jenkins:
     build:
+      # lo corremos en root para poder usar Docker
       context: .
       dockerfile: ../Dockerfile.jenkins
 
@@ -83,6 +87,7 @@ services:
 
     volumes:
       - jenkins_home:/var/jenkins_home
+      # Para dar permiso a todo el codigo fuente para correr
       - ../:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
 

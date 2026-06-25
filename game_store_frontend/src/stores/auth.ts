@@ -25,10 +25,15 @@ export const useAuthStore = defineStore('auth', {
           code
         })
         
+        // Autoriza resuestas de API
         this.accessToken = response.data.access_token
+        // Prueba identidad del usuario
         this.idToken = response.data.id_token
+        // rastrea datos de login dentro de un cookie 
         this.sessionToken = response.data.session_token
+
         this.user = response.data.user
+        // Genera nuevos tokens de id/acceso
         this.refreshToken = response.data.refresh_token
         
         // Store in localStorage
@@ -42,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         await axios.post('http://localhost:5000/auth/logout', {
-          refresh_token: this.accessToken
+          refresh_token: this.refreshToken
         })
       } finally {
         this.accessToken = null

@@ -7,7 +7,7 @@ class Config:
         f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}@"
         f"{os.environ.get('DATABASE_HOST', 'db')}:"
         f"{os.environ.get('DATABASE_PORT', '5432')}/"
-        f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}"
+        f"{os.environ.get('POSTGRES_DB', 'appdb')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

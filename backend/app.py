@@ -34,6 +34,7 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     api.init_app(app)
 
+    metrics = PrometheusMetrics(app)
     register_blueprints(api)
 
     return app
@@ -138,6 +139,7 @@ def login():
     code = data.get('code')
 
     try:
+        # si todo esta verificado del login del frontend hasta aqui, nos va a devolver los tres tokens: id_token, access_token y el refresh_token
         token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
@@ -207,6 +209,8 @@ def logout():
         return redirect(logout_url)
 
     return redirect(url_for('login_page'))
+
+
 
 
 @app.route('/auth/verify', methods=['POST'])
