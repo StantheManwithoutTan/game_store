@@ -3,40 +3,40 @@ from extensions import db
 
 class StockService:
     @staticmethod
-    def entrada_stock(product_id, cantidad, motivo = None, usuario = None):
+    def entrada_stock(product_id, amount, motive=None, usuario=None):
         product = Product.query.get_or_404(product_id)
-        stock_antes = Product.quantity
-        product.quantity += cantidad
+        stock_before = product.quantity
+        product.quantity += amount
 
         mov = StockMovement(
-            product_id=product_id, 
-            tipo="entrada",
-            usuario = usuario,
-            cantidad=cantidad, 
-            stock_antes=stock_antes,
-            stock_despues=product.quantity,
-            motivo=motivo
+            product_id=product_id,
+            type_movement="entrada",
+            amount=amount,
+            stock_before=stock_before,
+            stock_after=product.quantity,
+            motive=motive,
+            usuario=usuario,
         )
         db.session.add(mov)
         db.session.commit()
         return mov
 
     @staticmethod
-    def salida_stock(product_id, cantidad, motivo = None, usuario = None):
+    def salida_stock(product_id, amount, motive=None, usuario=None):
         product = Product.query.get_or_404(product_id)
-        if product.quantity < cantidad:
-            raise ValueError("Cantidad inusuable")
-        stock_antes = product.quantity
-        product.quantity -= cantidad
+        if product.quantity < amount:
+            raise ValueError("Stock insuficiente")
+        stock_before = product.quantity
+        product.quantity -= amount
 
         mov = StockMovement(
-            product_id=product_id, 
-            tipo="salida",
-            usuario = usuario,
-            cantidad=cantidad, 
-            stock_antes=stock_antes,
-            stock_despues=product.quantity,
-            motivo=motivo
+            product_id=product_id,
+            type_movement="salida",
+            amount=amount,
+            stock_before=stock_before,
+            stock_after=product.quantity,
+            motive=motive,
+            usuario=usuario,
         )
         db.session.add(mov)
         db.session.commit()
@@ -44,25 +44,26 @@ class StockService:
 
     # Utilizados para stock robado, perdido o para arreglar errores 
     @staticmethod
-    def ajuste_stock(product_id, cantidad, motive=None, usuario = None):
+    def ajuste_stock(product_id, stock_after, motive=None, usuario=None):
         product = Product.query.get_or_404(product_id)
-        if cantidad < 0:
-            raise ValueError("Valores negativos no soportados")
-        stock_antes = product.quantity
-        diferencia = cantidad - stock_antes
-        product.quantity = cantidad
+        if stock_after < 0:
+            raise ValueError("La cantidad no puede ser negativa")
+        stock_before = product.quantity
+        diff = stock_after - stock_before
+        product.quantity = stock_after
 
         mov = StockMovement(
-            product_id=product_id, 
-            tipo="ajuste",
-            usuario = usuario,
-            cantidad=cantidad, 
-            stock_antes=stock_antes,
-            stock_despues=product.quantity,
-            motivo=motivo
+            product_id=product_id,
+            type_movement="ajuste",
+            amount=diff,
+            stock_before=stock_before,
+            stock_after=stock_after,
+            motive=motive,
+            usuario=usuario,
         )
         db.session.add(mov)
         db.session.commit()
+        return mov
 
     @staticmethod
     def historial(product_id=None, fecha_desde=None, fecha_hasta=None):

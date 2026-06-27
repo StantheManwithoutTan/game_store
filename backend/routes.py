@@ -23,6 +23,21 @@ blp_stocks = Blueprint(
 )
 
 
+def _get_current_user():
+    auth = request.headers.get('Authorization', '')
+    token = auth.replace('Bearer ', '')
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token,
+            current_app.config['SECRET_KEY'],
+            algorithms=['HS256']
+        )
+        return payload.get('email') or payload.get('sub')
+    except Exception:
+        return None
+
 @blp_products.route("/", strict_slashes=False)
 class ProductList(MethodView):
     @require_permission('product:view')
@@ -115,15 +130,15 @@ class GameById(MethodView):
         db.session.commit()
 
     
-
 @blp_stocks.route("/entrada")
 class StockEntrada(MethodView):
     @require_permission('stock:manage')
     @blp_stocks.arguments(StockEntradaSchema)
     @blp_stocks.response(201, StockMovementSchema)
     def post(self, data):
+        usuario = _get_current_user()
         try:
-            return StockService.entrada_stock(**data)
+            return StockService.entrada_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
 
@@ -133,8 +148,9 @@ class StockSalida(MethodView):
     @blp_stocks.arguments(StockSalidaSchema)
     @blp_stocks.response(201, StockMovementSchema)
     def post(self, data):
+        usuario = _get_current_user()
         try:
-            return StockService.salida_stock(**data)
+            return StockService.salida_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
 
@@ -144,8 +160,9 @@ class StockAjuste(MethodView):
     @blp_stocks.arguments(StockAjusteSchema)
     @blp_stocks.response(201, StockMovementSchema)
     def post(self, data):
+        usuario = _get_current_user()
         try:
-            return StockService.ajuste_stock(**data)
+            return StockService.ajuste_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
 
@@ -165,7 +182,6 @@ class StockCriticos(MethodView):
     @blp_stocks.response(200, ProductSchema(many=True))
     def get(self):
         return StockService.criticos()
-
 
 def register_blueprints(api):
     api.register_blueprint(blp_games)

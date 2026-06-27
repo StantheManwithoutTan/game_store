@@ -55,24 +55,25 @@ class ProductSchema(Schema):
 class StockMovementSchema(Schema):
     id = fields.Int(dump_only=True)
     product_id = fields.Int(required=True)
-    tipo = fields.Str(dump_only=True)        # lo asigna el service
-    cantidad = fields.Int(required=True)
-    stock_antes = fields.Int(dump_only=True)
-    stock_despues = fields.Int(dump_only=True)
-    motivo = fields.Str(allow_none=True)
+    usuario = fields.Str(dump_only=True)
+    type_movement = fields.Str(dump_only=True)
+    amount = fields.Int(required=True)
+    stock_before = fields.Int(dump_only=True)
+    stock_after = fields.Int(dump_only=True)
+    motive = fields.Str(allow_none=True)
     created_at = fields.DateTime(dump_only=True)
 
 class StockEntradaSchema(Schema):
     product_id = fields.Int(required=True)
-    cantidad = fields.Int(required=True, validate=validate.Range(min=1))
-    motivo = fields.Str(allow_none=True)
+    amount = fields.Int(required=True, validate=validate.Range(min=1))
+    motive = fields.Str(allow_none=True)
 
 class StockSalidaSchema(Schema):
     product_id = fields.Int(required=True)
-    cantidad = fields.Int(required=True, validate=validate.Range(min=1))
-    motivo = fields.Str(allow_none=True)
+    amount = fields.Int(required=True, validate=validate.Range(min=1))
+    motive = fields.Str(allow_none=True)
 
 class StockAjusteSchema(Schema):
     product_id = fields.Int(required=True)
-    nueva_cantidad = fields.Int(required=True, validate=validate.Range(min=0))
-    motivo = fields.Str(allow_none=True)
+    stock_after = fields.Int(required=True, validate=validate.Range(min=0))
+    motive = fields.Str(allow_none=True)
