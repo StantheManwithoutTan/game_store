@@ -3,7 +3,7 @@ from extensions import db
 
 class StockService:
     @staticmethod
-    def entrada_stock(product_id, cantidad, motivo = None):
+    def entrada_stock(product_id, cantidad, motivo = None, usuario = None):
         product = Product.query.get_or_404(product_id)
         stock_antes = Product.quantity
         product.quantity += cantidad
@@ -11,6 +11,7 @@ class StockService:
         mov = StockMovement(
             product_id=product_id, 
             tipo="entrada",
+            usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
             stock_despues=product.quantity
@@ -21,7 +22,7 @@ class StockService:
         return mov
 
     @staticmethod
-    def salida_stock(product_id, cantidad, motivo = None):
+    def salida_stock(product_id, cantidad, motivo = None, usuario = None):
         product = Product.query.get_or_404(product_id)
         if product.quantity < cantidad:
             raise ValueError("Cantidad inusuable")
@@ -31,6 +32,7 @@ class StockService:
         mov = StockMovement(
             product_id=product_id, 
             tipo="salida",
+            usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
             stock_despues=product.quantity
@@ -42,7 +44,7 @@ class StockService:
 
     # Utilizados para stock robado, perdido o para arreglar errores 
     @staticmethod
-    def ajuste_stock(product_id, cantidad, motive=None)
+    def ajuste_stock(product_id, cantidad, motive=None, usuario = None)
         product = Product.query.get_or_404(product_id)
         if cantidad < 0:
             raise ValueError("Valores negativos no soportados")
@@ -53,6 +55,7 @@ class StockService:
         mov = StockMovement(
             product_id=product_id, 
             tipo="ajuste",
+            usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
             stock_despues=product.quantity
