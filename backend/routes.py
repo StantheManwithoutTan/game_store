@@ -4,8 +4,9 @@ from flask_smorest import Blueprint, abort
 
 from extensions import db
 from models import Game
-from schemas import GameSchema, ProductSchema
+from schemas import GameSchema, ProductSchema, StockMovementSchema, StockEntradaSchema, StockSalidaSchema, StockAjusteSchema
 from services.product_service import ProductService
+from services.stock_service import StockService
 from decorators import require_permission
 
 
