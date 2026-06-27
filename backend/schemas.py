@@ -51,3 +51,28 @@ class ProductSchema(Schema):
     min_stock = fields.Int(load_default=0)
     status = fields.Str(load_default="active")
 
+
+class StockMovementSchema(Schema):
+    id = fields.Int(dump_only=True)
+    product_id = fields.Int(required=True)
+    tipo = fields.Str(dump_only=True)        # lo asigna el service
+    cantidad = fields.Int(required=True)
+    stock_antes = fields.Int(dump_only=True)
+    stock_despues = fields.Int(dump_only=True)
+    motivo = fields.Str(allow_none=True)
+    created_at = fields.DateTime(dump_only=True)
+
+class StockEntradaSchema(Schema):
+    product_id = fields.Int(required=True)
+    cantidad = fields.Int(required=True, validate=validate.Range(min=1))
+    motivo = fields.Str(allow_none=True)
+
+class StockSalidaSchema(Schema):
+    product_id = fields.Int(required=True)
+    cantidad = fields.Int(required=True, validate=validate.Range(min=1))
+    motivo = fields.Str(allow_none=True)
+
+class StockAjusteSchema(Schema):
+    product_id = fields.Int(required=True)
+    nueva_cantidad = fields.Int(required=True, validate=validate.Range(min=0))
+    motivo = fields.Str(allow_none=True)

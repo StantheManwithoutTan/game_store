@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API = 'http://localhost:5000/api/products'
+const API = 'http://localhost:5000/api/stocks'
 
 interface Product {
   id: number; name: string; sku: string; quantity: number
@@ -18,7 +18,9 @@ const error = ref('')
 
 function authHeaders() {
   const token = localStorage.getItem('session_token')
-  return { Authorization: `Bearer ${token}` }
+  return { 
+    Authorization: `Bearer ${token}` 
+  }
 }
 
 function stockLevelClass(p: Product): string {

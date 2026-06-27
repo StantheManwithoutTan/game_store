@@ -82,3 +82,19 @@ class Controller(db.Model, TimestampMixin):
     console_id: Mapped[int] = mapped_column(ForeignKey("consoles.id"), index=True)
 
     console: Mapped["Console"] = relationship(back_populates="controllers")
+
+
+class StockMovement(db.Model):
+    __tablename__ = "movimientos_stock"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True, nullable=False)
+    usuario: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    type_movement: Mapped[str] = mapped_column(String(20), nullable=False)        # "entrada", "salida", "ajuste"
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    stock_before: Mapped[int] = mapped_column(Integer, nullable=False)
+    stock_after: Mapped[int] = mapped_column(Integer, nullable=False)
+    motive: Mapped[str | None] = mapped_column(Text, nullable=True) #motivo -> observacion, por que fue realizado (si el usuario quiere especificar)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    product: Mapped["Product"] = relationship(backref="movimientos")
