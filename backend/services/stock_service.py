@@ -14,7 +14,7 @@ class StockService:
             usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
-            stock_despues=product.quantity
+            stock_despues=product.quantity,
             motivo=motivo
         )
         db.session.add(mov)
@@ -35,7 +35,7 @@ class StockService:
             usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
-            stock_despues=product.quantity
+            stock_despues=product.quantity,
             motivo=motivo
         )
         db.session.add(mov)
@@ -44,7 +44,7 @@ class StockService:
 
     # Utilizados para stock robado, perdido o para arreglar errores 
     @staticmethod
-    def ajuste_stock(product_id, cantidad, motive=None, usuario = None)
+    def ajuste_stock(product_id, cantidad, motive=None, usuario = None):
         product = Product.query.get_or_404(product_id)
         if cantidad < 0:
             raise ValueError("Valores negativos no soportados")
@@ -58,7 +58,7 @@ class StockService:
             usuario = usuario,
             cantidad=cantidad, 
             stock_antes=stock_antes,
-            stock_despues=product.quantity
+            stock_despues=product.quantity,
             motivo=motivo
         )
         db.session.add(mov)
