@@ -24,7 +24,9 @@ const form = ref({ name: '', sku: '', price: 0, description: '', category: '', q
 
 function authHeaders() {
   const token = localStorage.getItem('session_token')
-  return { Authorization: `Bearer ${token}` }
+  return { 
+    Authorization: `Bearer ${token}` 
+  }
 }
 
 async function fetchProducts() {
@@ -38,9 +40,15 @@ async function fetchProducts() {
     // totalPages from response headers or default
     totalPages.value = parseInt(res.headers['x-total-pages'] || '1')
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al cargar productos'
-  } finally { loading.value = false }
+
+    if (e.response?.status === 401)
+        router.push('/login')
+    else 
+        error.value = 'Error al cargar productos'
+  } 
+  finally { 
+        loading.value = false 
+  }
 }
 
 function onSearch() {
@@ -55,7 +63,15 @@ function changePage(p: number) {
 
 function openCreateForm() {
   editingProduct.value = null
-  form.value = { name: '', sku: '', price: 0, description: '', category: '', quantity: 0, min_stock: 0, status: 'active' }
+  form.value = { 
+    name: '', 
+    sku: '', 
+    price: 0, 
+    description: '', 
+    category: '', 
+    quantity: 0, 
+    min_stock: 0, 
+    status: 'active' }
   showForm.value = true
 }
 
@@ -90,10 +106,15 @@ async function saveProduct() {
     closeForm()
     fetchProducts()
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else if (e.response?.status === 403) error.value = 'No tienes permiso para esta acción'
-    else error.value = e.response?.data?.message || 'Error al guardar'
-  } finally { loading.value = false }
+    if (e.response?.status === 401) 
+        router.push('/login')
+    else if (e.response?.status === 403) 
+        error.value = 'No tienes permiso para esta acción'
+    else 
+        error.value = e.response?.data?.message || 'Error al guardar'
+  } finally { 
+    loading.value = false 
+  }
 }
 
 async function deleteProduct(id: number) {
@@ -102,8 +123,10 @@ async function deleteProduct(id: number) {
     await axios.delete(`${API}/${id}`, { headers: authHeaders() })
     fetchProducts()
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al eliminar'
+    if (e.response?.status === 401) 
+        router.push('/login')
+    else 
+        error.value = 'Error al eliminar'
   }
 }
 
@@ -161,10 +184,12 @@ onMounted(fetchProducts)
                 <input id="quantity" v-model.number="form.quantity" type="number" placeholder="0" />
               </div>
             </div>
+            <!--
             <div class="form-group">
               <label for="min_stock">Stock mínimo </label>
               <input id="min_stock" v-model.number="form.min_stock" type="number" placeholder="0" />
             </div>
+          -->
           </fieldset>
 
           <fieldset>

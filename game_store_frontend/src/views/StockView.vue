@@ -33,9 +33,13 @@ async function fetchProducts() {
     const res = await axios.get(API, { headers: authHeaders(), params: { per_page: 100 } })
     products.value = res.data
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al cargar stock'
-  } finally { loading.value = false }
+    if (e.response?.status === 401) 
+     router.push('/login')
+    else 
+      error.value = 'Error al cargar stock'
+  } finally { 
+    loading.value = false 
+  }
 }
 
 async function updateStock(p: Product) {
@@ -43,9 +47,13 @@ async function updateStock(p: Product) {
   try {
     await axios.put(`${API}/${p.id}`, { quantity: p.quantity, min_stock: p.min_stock }, { headers: authHeaders() })
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al actualizar stock'
-  } finally { savingId.value = null }
+    if (e.response?.status === 401) 
+      router.push('/login')
+    else 
+      error.value = 'Error al actualizar stock'
+  } finally { 
+      savingId.value = null 
+  }
 }
 
 onMounted(fetchProducts)
