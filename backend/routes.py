@@ -1,6 +1,7 @@
-from flask import request
+from flask import request, current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+import jwt
 
 from extensions import db
 from models import Game
@@ -89,8 +90,6 @@ class ProductById(MethodView):
     @blp_products.response(204)
     def delete(self, product_id):
         ProductService.delete(product_id)
-
-@blp_products.route("")
 
 
 @blp_games.route("/")

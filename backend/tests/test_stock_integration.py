@@ -13,7 +13,7 @@ from testcontainers.postgres import PostgresContainer
 
 from app import create_app
 from extensions import db
-
+from config import Config
 
 TEST_SECRET = "test-secret"
 
@@ -38,8 +38,9 @@ def postgres_container():
 @pytest.fixture
 def client(postgres_container):
 
-    class TestConfig:
+    class TestConfig(Config):
         TESTING = True
+        TEST_AUTH = True
         SQLALCHEMY_DATABASE_URI = postgres_container.get_connection_url()
         SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -63,7 +64,8 @@ def client(postgres_container):
 
 @pytest.fixture
 def headers():
-    return {"Authorization": f"Bearer {make_token('stock:manage', 'stock:view')}"}
+    return {"Authorization": f"Bearer {make_token('product:manage', 'stock:manage', 'stock:view')}"}
+
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API = 'http://localhost:5000/api/stocks'
+const API = 'http://localhost:5000/api/products'
 
 interface Product {
   id: number; name: string; sku: string; quantity: number
@@ -51,6 +51,8 @@ async function updateStock(p: Product) {
   } catch (e: any) {
     if (e.response?.status === 401) 
       router.push('/login')
+    else if (e.response?.status === 403)
+      error.value = 'No tienes permiso para gestionar stock'
     else 
       error.value = 'Error al actualizar stock'
   } finally { 
