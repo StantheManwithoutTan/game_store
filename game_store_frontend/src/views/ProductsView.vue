@@ -8,7 +8,7 @@ const API = 'http://localhost:5000/api/products'
 interface Product {
   id: number; name: string; sku: string; description?: string
   category?: string; price: string; quantity: number
-  min_stock: number; status: string
+  min_stock: number; status: string, critico_stock: boolean
 }
 
 const router = useRouter()
@@ -20,7 +20,7 @@ const loading = ref(false)
 const error = ref('')
 const showForm = ref(false)
 const editingProduct = ref<Product | null>(null)
-const form = ref({ name: '', sku: '', price: 0, description: '', category: '', quantity: 0, min_stock: 0, status: 'active' })
+const form = ref({ name: '', sku: '', price: 0, description: '', category: '', quantity: 0, min_stock: 0, status: 'active', critico_stock: false })
 
 function authHeaders() {
   const token = localStorage.getItem('session_token')
@@ -71,7 +71,9 @@ function openCreateForm() {
     category: '', 
     quantity: 0, 
     min_stock: 0, 
-    status: 'active' }
+    status: 'active',
+    critico_stock: false 
+  }
   showForm.value = true
 }
 
@@ -85,7 +87,8 @@ function openEditForm(p: Product) {
     category: p.category || '',
     quantity: p.quantity,
     min_stock: p.min_stock,
-    status: p.status
+    status: p.status,
+    critico_stock: p.critico_stock
   }
   showForm.value = true
 }

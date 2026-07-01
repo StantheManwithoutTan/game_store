@@ -50,6 +50,7 @@ class ProductSchema(Schema):
     quantity = fields.Int(load_default=0)
     min_stock = fields.Int(load_default=0)
     status = fields.Str(load_default="active")
+    critico_stock = fields.Bool(dump_default=False)
 
 
 class StockMovementSchema(Schema):

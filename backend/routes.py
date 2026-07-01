@@ -175,6 +175,7 @@ class StockHistorial(MethodView):
         fecha_hasta = request.args.get("fecha_hasta")
         return StockService.historial(product_id, fecha_desde, fecha_hasta)
 
+# NOTA: CAMBIA RESULTADO DE ESTA PRUEBA 
 @blp_stocks.route("/criticos")
 class StockCriticos(MethodView):
     @require_permission('stock:view')

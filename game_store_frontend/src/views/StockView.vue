@@ -7,7 +7,7 @@ const API = 'http://localhost:5000/api/products'
 
 interface Product {
   id: number; name: string; sku: string; quantity: number
-  min_stock: number; status: string
+  min_stock: number; status: string, critico_stock: boolean
 }
 
 const router = useRouter()
@@ -24,9 +24,9 @@ function authHeaders() {
 }
 
 function stockLevelClass(p: Product): string {
-  if (p.quantity <= p.min_stock) return 'level-danger'
-  if (p.quantity <= p.min_stock * 2) return 'level-warning'
-  return 'level-ok'
+    if (p.critico_stock) return 'level-danger'
+    if (p.quantity <= p.min_stock * 2) return 'level-warning'
+    return 'level-ok'
 }
 
 async function fetchProducts() {
@@ -79,6 +79,7 @@ onMounted(fetchProducts)
           <th>Cantidad</th>
           <th>Stock Mínimo</th>
           <th>Estado</th>
+          <th>Critico</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -89,6 +90,7 @@ onMounted(fetchProducts)
           <td><input v-model.number="p.quantity" type="number" min="0" /></td>
           <td><input v-model.number="p.min_stock" type="number" min="0" /></td>
           <td>{{ p.status }}</td>
+          <td>{{ p.critico_stock ? 'Sí' : 'No' }}</td>
           <td><button @click="updateStock(p)" :disabled="savingId === p.id">Guardar</button></td>
         </tr>
       </tbody>

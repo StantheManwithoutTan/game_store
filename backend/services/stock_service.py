@@ -8,6 +8,8 @@ class StockService:
         stock_before = product.quantity
         product.quantity += amount
 
+        product.critico_stock = (product.quantity <= product.min_stock)
+
         mov = StockMovement(
             product_id=product_id,
             type_movement="entrada",
@@ -28,6 +30,8 @@ class StockService:
             raise ValueError("Stock insuficiente")
         stock_before = product.quantity
         product.quantity -= amount
+
+        product.critico_stock = (product.quantity <= product.min_stock)
 
         mov = StockMovement(
             product_id=product_id,
@@ -51,6 +55,8 @@ class StockService:
         stock_before = product.quantity
         diff = stock_after - stock_before
         product.quantity = stock_after
+
+        product.critico_stock = (product.quantity <= product.min_stock)
 
         mov = StockMovement(
             product_id=product_id,
@@ -79,8 +85,10 @@ class StockService:
     @staticmethod
     def criticos():
         return Product.query.filter(
-            Product.quantity <= Product.min_stock,
-            Product.status == "active"
+            db.or_(
+                db.and_(Product.quantity <= Product.min_stock, Product.status == "active"),
+                Product.critico_stock == True
+            )
         ).all()
 
     
