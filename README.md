@@ -105,6 +105,15 @@ curl -s http://localhost:8080/realms/game-store/.well-known/openid-configuration
     - Pruebe que Keycloak responde
 
 
+
+
+
+
+
+
+
+
+
 - Probar GET /api/products (requiere product:view)
 
 curl.exe -s http://localhost:5000/api/products/ \ -H "Authorization: Bearer <session_token>"
@@ -145,6 +154,14 @@ También se implementaron pruebas para los endpoints de la API relacionados con 
 Para ejecutar las pruebas de API:
 
 pytest backend/tests/test_product_api.py -v
+
+
+Para ejecutar las pruebas unitarias de stock:
+- pytest tests/test_stock_integration.py -v
+
+Para ejecutar las pruebas de integración de stock:
+- pytest tests/test_stock_service.py -v
+
 
 
 Tipos de Productos en tienda preliminar:

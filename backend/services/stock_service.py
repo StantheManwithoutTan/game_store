@@ -85,8 +85,9 @@ class StockService:
     @staticmethod
     def criticos():
         return Product.query.filter(
+            Product.status == "active",
             db.or_(
-                db.and_(Product.quantity <= Product.min_stock, Product.status == "active"),
+                Product.quantity <= Product.min_stock,
                 Product.critico_stock == True
             )
         ).all()
