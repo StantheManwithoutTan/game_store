@@ -370,17 +370,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/stock-control`
 
-- [ ] **Implementar módulo de Control de Stock en Flask**
+- [X] **Implementar módulo de Control de Stock en Flask**
   - `StockService`: `entrada_stock`, `salida_stock`, `ajuste_stock`
   - Validar que salida no deje stock negativo
   - Lógica de alerta: si `cantidad <= stock_min`, marcar producto como crítico
 
-- [ ] **Exponer endpoints de stock y protegerlos con permisos**
+- [X] **Exponer endpoints de stock y protegerlos con permisos**
   - `POST /api/stock/entrada` y `POST /api/stock/salida` → requieren `stock:manage`
   - `GET /api/stock/historial` (filtros por fecha y producto) → `stock:view`
   - `GET /api/stock/criticos` → `stock:view`
 
-- [ ] **Agregar tests unitarios y de integración para Stock**
+- [X] **Agregar tests unitarios y de integración para Stock**
   - Unit tests: `StockService` (entrada, salida, ajuste, alerta de stock mínimo)
   - Integration tests con Testcontainers: endpoints de stock con datos reales
 
