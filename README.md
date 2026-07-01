@@ -62,6 +62,35 @@ docker compose -f docker-compose.yml exec backend flask db migrate -m "Initial m
 docker compose -f docker-compose.yml exec backend flask db upgrade
 
 
+
+
+Para guardar y subir cambios de la base de datos (de models.py o schemas.py).
+
+# 1. Entra la carpeta de devcontainers
+cd .\.devcontainer\
+
+# 2. Crear el commit dentro de flask db (wrapper de alembic):
+docker compose exec backend flask db revision --autogenerate -m "add critico_stock"
+
+# 3. Actualizar la base de datos:
+docker compose exec backend flask db upgrade
+
+# 4. Ver la historia de las migraciones de la base de datos:
+docker compose exec backend flask db history
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Keycloak:
 Con el archivo realm-export.json ubicado en la carpeta keycloak, corre el contenedor normal como antes con docker compose up -d. Debe tomar la configuracion de ese archivo y recrearlo en el puerto 8080.
 
