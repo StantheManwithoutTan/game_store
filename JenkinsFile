@@ -29,9 +29,8 @@ pipeline {
 
                 sh '''
                 docker exec devcontainer-backend-1 \
-                pytest tests/test_product_service.py \
-                -v \
-                --junitxml=/app/results/unit.xml
+                pytest tests/test_product_service.py tests/test_stock_service.py \
+                -v --junitxml=/app/results/unit.xml
                 '''
 
                 sh '''
@@ -73,7 +72,7 @@ pipeline {
             }
         }
 
-        stage('Integration Tests') {
+        stage('Product Integration Tests') {
 
             steps {
 
@@ -95,6 +94,20 @@ pipeline {
                 always {
                     junit 'results/integration.xml'
                 }
+            }
+        }
+        stage('Stock Integration Tests') {
+            steps {
+                sh 'docker exec devcontainer-backend-1 mkdir -p /app/results'
+                sh '''
+                docker exec devcontainer-backend-1 \
+                pytest tests/test_stock_integration.py \
+                -v --junitxml=/app/results/stock_integration.xml
+                '''
+                sh 'docker cp devcontainer-backend-1:/app/results/stock_integration.xml results/stock_integration.xml'
+            }
+            post {
+                always { junit 'results/stock_integration.xml' }
             }
         }
     }
