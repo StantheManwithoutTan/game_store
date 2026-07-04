@@ -50,4 +50,31 @@ class ProductSchema(Schema):
     quantity = fields.Int(load_default=0)
     min_stock = fields.Int(load_default=0)
     status = fields.Str(load_default="active")
+    critico_stock = fields.Bool(dump_default=False)
 
+
+class StockMovementSchema(Schema):
+    id = fields.Int(dump_only=True)
+    product_id = fields.Int(required=True)
+    usuario = fields.Str(dump_only=True)
+    type_movement = fields.Str(dump_only=True)
+    amount = fields.Int(required=True)
+    stock_before = fields.Int(dump_only=True)
+    stock_after = fields.Int(dump_only=True)
+    motive = fields.Str(allow_none=True)
+    created_at = fields.DateTime(dump_only=True)
+
+class StockEntradaSchema(Schema):
+    product_id = fields.Int(required=True)
+    amount = fields.Int(required=True, validate=validate.Range(min=1))
+    motive = fields.Str(allow_none=True)
+
+class StockSalidaSchema(Schema):
+    product_id = fields.Int(required=True)
+    amount = fields.Int(required=True, validate=validate.Range(min=1))
+    motive = fields.Str(allow_none=True)
+
+class StockAjusteSchema(Schema):
+    product_id = fields.Int(required=True)
+    stock_after = fields.Int(required=True, validate=validate.Range(min=0))
+    motive = fields.Str(allow_none=True)

@@ -37,6 +37,7 @@ class ProductService:
             "quantity": product.quantity,
             "min_stock": product.min_stock,
             "status": product.status,
+            "critico_stock": product.critico_stock,
         }
 
     @staticmethod
@@ -46,6 +47,19 @@ class ProductService:
         if search: query = query.filter(Product.name.ilike(f"%{search}%"))
         if category: query = query.filter(Product.category == category)
         if status: query = query.filter(Product.status == status)
+
+        Product.query.filter(
+            Product.quantity <= Product.min_stock,
+            Product.critico_stock == False
+        ).update({"critico_stock": True}, synchronize_session=False)
+
+        Product.query.filter(
+            Product.quantity > Product.min_stock,
+            Product.critico_stock == True
+        ).update({"critico_stock": False}, synchronize_session=False)
+
+
+        db.session.commit()
 
         return query.paginate(page=page,per_page=per_page,error_out=False)
 

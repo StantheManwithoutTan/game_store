@@ -7,7 +7,7 @@ const API = 'http://localhost:5000/api/products'
 
 interface Product {
   id: number; name: string; sku: string; quantity: number
-  min_stock: number; status: string
+  min_stock: number; status: string, critico_stock: boolean
 }
 
 const router = useRouter()
@@ -18,13 +18,15 @@ const error = ref('')
 
 function authHeaders() {
   const token = localStorage.getItem('session_token')
-  return { Authorization: `Bearer ${token}` }
+  return { 
+    Authorization: `Bearer ${token}` 
+  }
 }
 
 function stockLevelClass(p: Product): string {
-  if (p.quantity <= p.min_stock) return 'level-danger'
-  if (p.quantity <= p.min_stock * 2) return 'level-warning'
-  return 'level-ok'
+    if (p.critico_stock) return 'level-danger'
+    if (p.quantity <= p.min_stock * 2) return 'level-warning'
+    return 'level-ok'
 }
 
 async function fetchProducts() {
@@ -33,9 +35,13 @@ async function fetchProducts() {
     const res = await axios.get(API, { headers: authHeaders(), params: { per_page: 100 } })
     products.value = res.data
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al cargar stock'
-  } finally { loading.value = false }
+    if (e.response?.status === 401) 
+     router.push('/login')
+    else 
+      error.value = 'Error al cargar stock'
+  } finally { 
+    loading.value = false 
+  }
 }
 
 async function updateStock(p: Product) {
@@ -43,9 +49,15 @@ async function updateStock(p: Product) {
   try {
     await axios.put(`${API}/${p.id}`, { quantity: p.quantity, min_stock: p.min_stock }, { headers: authHeaders() })
   } catch (e: any) {
-    if (e.response?.status === 401) router.push('/login')
-    else error.value = 'Error al actualizar stock'
-  } finally { savingId.value = null }
+    if (e.response?.status === 401) 
+      router.push('/login')
+    else if (e.response?.status === 403)
+      error.value = 'No tienes permiso para gestionar stock'
+    else 
+      error.value = 'Error al actualizar stock'
+  } finally { 
+      savingId.value = null 
+  }
 }
 
 onMounted(fetchProducts)
@@ -67,6 +79,7 @@ onMounted(fetchProducts)
           <th>Cantidad</th>
           <th>Stock Mínimo</th>
           <th>Estado</th>
+          <th>Critico</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -77,6 +90,7 @@ onMounted(fetchProducts)
           <td><input v-model.number="p.quantity" type="number" min="0" /></td>
           <td><input v-model.number="p.min_stock" type="number" min="0" /></td>
           <td>{{ p.status }}</td>
+          <td>{{ p.critico_stock ? 'Sí' : 'No' }}</td>
           <td><button @click="updateStock(p)" :disabled="savingId === p.id">Guardar</button></td>
         </tr>
       </tbody>

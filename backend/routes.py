@@ -1,11 +1,13 @@
-from flask import request
+from flask import request, current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+import jwt
 
 from extensions import db
 from models import Game
-from schemas import GameSchema, ProductSchema
+from schemas import GameSchema, ProductSchema, StockMovementSchema, StockEntradaSchema, StockSalidaSchema, StockAjusteSchema
 from services.product_service import ProductService
+from services.stock_service import StockService
 from decorators import require_permission
 
 
@@ -17,6 +19,25 @@ blp_products = Blueprint(
     "products", "products", url_prefix="/api/products", description="Products"
 )
 
+blp_stocks = Blueprint(
+    "stock", "stock", url_prefix="/api/stocks", description="Stocks"
+)
+
+
+def _get_current_user():
+    auth = request.headers.get('Authorization', '')
+    token = auth.replace('Bearer ', '')
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token,
+            current_app.config['SECRET_KEY'],
+            algorithms=['HS256']
+        )
+        return payload.get('email') or payload.get('sub')
+    except Exception:
+        return None
 
 @blp_products.route("/", strict_slashes=False)
 class ProductList(MethodView):
@@ -107,10 +128,65 @@ class GameById(MethodView):
         db.session.delete(game)
         db.session.commit()
 
+    
+@blp_stocks.route("/entrada")
+class StockEntrada(MethodView):
+    @require_permission('stock:manage')
+    @blp_stocks.arguments(StockEntradaSchema)
+    @blp_stocks.response(201, StockMovementSchema)
+    def post(self, data):
+        usuario = _get_current_user()
+        try:
+            return StockService.entrada_stock(**data, usuario=usuario)
+        except ValueError as e:
+            abort(400, message=str(e))
+
+@blp_stocks.route("/salida")
+class StockSalida(MethodView):
+    @require_permission('stock:manage')
+    @blp_stocks.arguments(StockSalidaSchema)
+    @blp_stocks.response(201, StockMovementSchema)
+    def post(self, data):
+        usuario = _get_current_user()
+        try:
+            return StockService.salida_stock(**data, usuario=usuario)
+        except ValueError as e:
+            abort(400, message=str(e))
+
+@blp_stocks.route("/ajuste")
+class StockAjuste(MethodView):
+    @require_permission('stock:manage')
+    @blp_stocks.arguments(StockAjusteSchema)
+    @blp_stocks.response(201, StockMovementSchema)
+    def post(self, data):
+        usuario = _get_current_user()
+        try:
+            return StockService.ajuste_stock(**data, usuario=usuario)
+        except ValueError as e:
+            abort(400, message=str(e))
+
+@blp_stocks.route("/historial")
+class StockHistorial(MethodView):
+    @require_permission('stock:view')
+    @blp_stocks.response(200, StockMovementSchema(many=True))
+    def get(self):
+        product_id = request.args.get("product_id", type=int)
+        fecha_desde = request.args.get("fecha_desde")
+        fecha_hasta = request.args.get("fecha_hasta")
+        return StockService.historial(product_id, fecha_desde, fecha_hasta)
+
+# NOTA: CAMBIA RESULTADO DE ESTA PRUEBA 
+@blp_stocks.route("/criticos")
+class StockCriticos(MethodView):
+    @require_permission('stock:view')
+    @blp_stocks.response(200, ProductSchema(many=True))
+    def get(self):
+        return StockService.criticos()
 
 def register_blueprints(api):
     api.register_blueprint(blp_games)
     api.register_blueprint(blp_products)
+    api.register_blueprint(blp_stocks)
     # api.register_blueprint(blp_consoles)
     # api.register_blueprint(blp_controllers)
     # api.register_blueprint(blp_users)
