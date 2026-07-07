@@ -33,6 +33,16 @@ class ControllerSchema(Schema):
     console_id = fields.Int(required=True)
 
 
+class AuditLogSchema(Schema):
+    id = fields.Int(dump_only=True)
+    table_name = fields.Str()
+    record_id = fields.Int()
+    action = fields.Str()
+    old_values = fields.Raw(allow_none=True)
+    new_values = fields.Raw(allow_none=True)
+    changed_by = fields.Str(allow_none=True)
+    created_at = fields.DateTime(dump_only=True)
+
 class UserSchema(Schema):
     id = fields.Int(dump_only=True)
     keycloak_sub = fields.Str(dump_only=True)

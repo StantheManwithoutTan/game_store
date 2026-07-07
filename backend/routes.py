@@ -196,10 +196,59 @@ class StockCriticos(MethodView):
     def get(self):
         return StockService.criticos()
 
+
+@blp_reports.route("/")
+class ReportList(MethodView):
+    @require_permission('report:view')
+    @blp_reports.response(200)
+    def get(self):
+        return {"message": "Reports endpoint", "reports": []}
+
+
+@blp_audit.route("/")
+class AuditList(MethodView):
+    @require_permission('audit:view')
+    @blp_audit.response(200)
+    def get(self):
+        from models import AuditLog
+        logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(50).all()
+        return [
+            {
+                "id": log.id,
+                "table_name": log.table_name,
+                "record_id": log.record_id,
+                "action": log.action,
+                "changed_by": log.changed_by,
+                "created_at": log.created_at.isoformat(),
+            }
+            for log in logs
+        ]
+
+
+@blp_users.route("/")
+class UserList(MethodView):
+    @require_permission('user:manage')
+    @blp_users.response(200)
+    def get(self):
+        from models import User
+        users = User.query.all()
+        return [
+            {
+                "id": u.id,
+                "email": u.email,
+                "name": u.name,
+                "keycloak_sub": u.keycloak_sub,
+            }
+            for u in users
+        ]
+
+
 def register_blueprints(api):
     api.register_blueprint(blp_games)
     api.register_blueprint(blp_products)
     api.register_blueprint(blp_stocks)
+    api.register_blueprint(blp_reports)
+    api.register_blueprint(blp_audit)
+    api.register_blueprint(blp_users)
     # api.register_blueprint(blp_consoles)
     # api.register_blueprint(blp_controllers)
-    # api.register_blueprint(blp_users)
