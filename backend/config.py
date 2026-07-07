@@ -18,6 +18,7 @@ class Config:
     OPENAPI_URL_PREFIX = "/api"
     OPENAPI_SWAGGER_UI_PATH = "/docs"
     OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
     RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '100/hour')
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
     RATELIMIT_STRATEGY = 'fixed-window'

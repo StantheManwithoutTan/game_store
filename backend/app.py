@@ -26,6 +26,13 @@ def create_app(config_class=Config):
 
     app.config.from_object(config_class)
 
+    CORS(
+        app,
+        origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')],
+        supports_credentials=True,
+        automatic_options=True
+    )
+
     # Crea instancias de la base de datos y de los endpoints de api
     db.init_app(app)
     migrate.init_app(app, db)
@@ -34,6 +41,14 @@ def create_app(config_class=Config):
 
     metrics = PrometheusMetrics(app)
     register_blueprints(api)
+
+    # Incluido para produccion y para que pruebas pueden acceder a configuracion de cabeceras de HTTP
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
 
     return app
 
@@ -47,22 +62,6 @@ keycloak_openid = KeycloakOpenID(
 )
 
 KEYCLOAK_EXTERNAL = os.environ.get('KEYCLOAK_SERVER_URL_EXTERNAL', 'http://localhost:8080')
-
-CORS(
-    app,
-    origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')],
-    supports_credentials=True,
-    automatic_options=True
-)
-
-@app.after_request
-def add_security_headers(response):
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    return response
-
-
 
 
 
