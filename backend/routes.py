@@ -23,6 +23,14 @@ blp_stocks = Blueprint(
     "stock", "stock", url_prefix="/api/stocks", description="Stocks"
 )
 
+blp_reports = Blueprint(
+    "report", "report", url_prefix="/api/reports", description="Report"
+)
+
+blp_audit = Blueprint("audit", "audit", url_prefix="/api/audit")
+blp_users = Blueprint("users", "users", url_prefix="/api/users")
+
+
 
 def _get_current_user():
     auth = request.headers.get('Authorization', '')
@@ -94,10 +102,12 @@ class ProductById(MethodView):
 
 @blp_games.route("/")
 class GameList(MethodView):
+    @require_permission('game:view')
     @blp_games.response(200, GameSchema(many=True))
     def get(self):
         return Game.query.all()
 
+    @require_permission('game:manage')
     @blp_games.arguments(GameSchema)
     @blp_games.response(201, GameSchema)
     def post(self, data):
@@ -109,10 +119,12 @@ class GameList(MethodView):
 
 @blp_games.route("/<int:game_id>")
 class GameById(MethodView):
+    @require_permission('game:view')
     @blp_games.response(200, GameSchema)
     def get(self, game_id):
         return Game.query.get_or_404(game_id)
 
+    @require_permission('game:manage')
     @blp_games.arguments(GameSchema(partial=True))
     @blp_games.response(200, GameSchema)
     def put(self, data, game_id):
@@ -122,6 +134,7 @@ class GameById(MethodView):
         db.session.commit()
         return game
 
+    @require_permission('game:manage')
     @blp_games.response(204)
     def delete(self, game_id):
         game = Game.query.get_or_404(game_id)
