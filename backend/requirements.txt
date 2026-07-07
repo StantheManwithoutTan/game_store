@@ -16,3 +16,4 @@ testcontainers[postgresql]==4.9.0
 gunicorn==23.0.0
 prometheus-flask-exporter==0.23.2 
 prometheus_client==0.25.0
+flask-limiter==3.9.0

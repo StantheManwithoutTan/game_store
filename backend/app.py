@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, session, redirect, url_for, render_te
 import os
 
 # Importar las bibliotecas de Keycloak, OAUTH2, JWT, etc. para autenticación y autorización
-import requests
 import jwt
 from keycloak import KeycloakOpenID
 from dotenv import load_dotenv
@@ -10,11 +9,10 @@ from dotenv import load_dotenv
 # Importar las configuraciones, extensiones y rutas
 from flask_cors import CORS
 from config import Config
-from extensions import db, migrate, api
+from extensions import db, migrate, api, limiter
 from routes import register_blueprints
 from prometheus_flask_exporter import PrometheusMetrics
 
-from models import User, Product, Console, Game, Controller  # noqa: F401
 from urllib.parse import quote
 
 load_dotenv()
@@ -28,11 +26,11 @@ def create_app(config_class=Config):
 
     app.config.from_object(config_class)
 
-    CORS(app)
-
+    # Crea instancias de la base de datos y de los endpoints de api
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
+    limiter.init_app(app)
 
     metrics = PrometheusMetrics(app)
     register_blueprints(api)
@@ -56,6 +54,14 @@ CORS(
     supports_credentials=True,
     automatic_options=True
 )
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
 
 
 
