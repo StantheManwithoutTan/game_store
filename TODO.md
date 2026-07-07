@@ -390,12 +390,12 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/granular-permissions`
 
-- [ ] **Implementar y verificar los permisos restantes de la matriz**
+- [X] **Implementar y verificar los permisos restantes de la matriz**
   - Proteger `/api/reports` con `report:view`, `/api/audit` con `audit:view`, `/api/users` con `user:manage`
   - Verificar que ningún endpoint valida solo el rol — siempre el permiso específico
   - Tests: token de `empleado` en ruta de admin → 403; token expirado → 401
 
-- [ ] **Agregar hardening de seguridad a la aplicación**
+- [X] **Agregar hardening de seguridad a la aplicación**
   - Cabeceras HTTP: `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`
   - Rate limiting con `flask-limiter` para prevenir abuso de endpoints
   - Validar que CORS rechaza peticiones de orígenes no permitidos
