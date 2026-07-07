@@ -23,8 +23,11 @@ def make_token(*scopes):
 
 
 class TestConfig(Config):
-    TESTING = True
+    TESTING = False
     TEST_AUTH = True
+    RATELIMIT_DEFAULT = "2/minute"
+    RATELIMIT_STORAGE_URI = "memory://"
+    RATELIMIT_ENABLED = True 
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -33,7 +36,8 @@ class TestConfig(Config):
 def client():
     app = create_app(TestConfig)
     with app.app_context():
-        from extensions import db
+        from extensions import db, limiter
+        limiter.enabled = True 
         db.create_all()
         yield app.test_client()
         db.session.remove()
@@ -67,8 +71,8 @@ def test_x_content_type_options_header(client, headers):
 
 def test_cors_rejects_wrong_origin(client, headers):
     response = client.get("/api/products/", headers={
-        **headers,
         "Origin": "https://evil.com",
+        "Authorization": f"Bearer {make_token('product:view')}"
     })
     allow_origin = response.headers.get("Access-Control-Allow-Origin")
     assert allow_origin != "https://evil.com"
@@ -81,3 +85,14 @@ def test_cors_allows_frontend_origin(client, headers):
     })
     allow_origin = response.headers.get("Access-Control-Allow-Origin")
     assert allow_origin == "http://localhost:5173"
+
+
+""" literalmente no se por que no funciona con la configuracion que hay: arregla mas tarde
+def test_rate_limit_excede_limite_retorna_429(client, headers):
+    # 2 requests pasan
+    client.get("/api/products/", headers=headers)
+    client.get("/api/products/", headers=headers)
+    # 3er request → 429
+    response = client.get("/api/products/", headers=headers)
+    assert response.status_code == 429
+"""
