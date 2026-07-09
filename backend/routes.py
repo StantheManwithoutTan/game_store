@@ -23,6 +23,14 @@ blp_stocks = Blueprint(
     "stock", "stock", url_prefix="/api/stocks", description="Stocks"
 )
 
+blp_reports = Blueprint(
+    "report", "report", url_prefix="/api/reports", description="Report"
+)
+
+blp_audit = Blueprint("audit", "audit", url_prefix="/api/audit")
+blp_users = Blueprint("users", "users", url_prefix="/api/users")
+
+
 
 def _get_current_user():
     auth = request.headers.get('Authorization', '')
@@ -94,10 +102,12 @@ class ProductById(MethodView):
 
 @blp_games.route("/")
 class GameList(MethodView):
+    @require_permission('game:view')
     @blp_games.response(200, GameSchema(many=True))
     def get(self):
         return Game.query.all()
 
+    @require_permission('game:manage')
     @blp_games.arguments(GameSchema)
     @blp_games.response(201, GameSchema)
     def post(self, data):
@@ -109,10 +119,12 @@ class GameList(MethodView):
 
 @blp_games.route("/<int:game_id>")
 class GameById(MethodView):
+    @require_permission('game:view')
     @blp_games.response(200, GameSchema)
     def get(self, game_id):
         return Game.query.get_or_404(game_id)
 
+    @require_permission('game:manage')
     @blp_games.arguments(GameSchema(partial=True))
     @blp_games.response(200, GameSchema)
     def put(self, data, game_id):
@@ -122,6 +134,7 @@ class GameById(MethodView):
         db.session.commit()
         return game
 
+    @require_permission('game:manage')
     @blp_games.response(204)
     def delete(self, game_id):
         game = Game.query.get_or_404(game_id)
@@ -183,10 +196,59 @@ class StockCriticos(MethodView):
     def get(self):
         return StockService.criticos()
 
+
+@blp_reports.route("/")
+class ReportList(MethodView):
+    @require_permission('report:view')
+    @blp_reports.response(200)
+    def get(self):
+        return {"message": "Reports endpoint", "reports": []}
+
+
+@blp_audit.route("/")
+class AuditList(MethodView):
+    @require_permission('audit:view')
+    @blp_audit.response(200)
+    def get(self):
+        from models import AuditLog
+        logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(50).all()
+        return [
+            {
+                "id": log.id,
+                "table_name": log.table_name,
+                "record_id": log.record_id,
+                "action": log.action,
+                "changed_by": log.changed_by,
+                "created_at": log.created_at.isoformat(),
+            }
+            for log in logs
+        ]
+
+
+@blp_users.route("/")
+class UserList(MethodView):
+    @require_permission('user:manage')
+    @blp_users.response(200)
+    def get(self):
+        from models import User
+        users = User.query.all()
+        return [
+            {
+                "id": u.id,
+                "email": u.email,
+                "name": u.name,
+                "keycloak_sub": u.keycloak_sub,
+            }
+            for u in users
+        ]
+
+
 def register_blueprints(api):
     api.register_blueprint(blp_games)
     api.register_blueprint(blp_products)
     api.register_blueprint(blp_stocks)
+    api.register_blueprint(blp_reports)
+    api.register_blueprint(blp_audit)
+    api.register_blueprint(blp_users)
     # api.register_blueprint(blp_consoles)
     # api.register_blueprint(blp_controllers)
-    # api.register_blueprint(blp_users)
