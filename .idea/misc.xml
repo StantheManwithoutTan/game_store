@@ -3,16 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.14 (game_store)" />
   </component>
-  <component name="MaterialThemeProjectNewConfig">
-    <option name="metadata">
-      <MTProjectMetadataState>
-        <option name="migrated" value="true" />
-        <option name="pristineConfig" value="false" />
-        <option name="userId" value="-51b0f078:19e21fa86c0:-7ffa" />
-      </MTProjectMetadataState>
-    </option>
-  </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="openjdk-26" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" default="true" project-jdk-name="openjdk-26" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
