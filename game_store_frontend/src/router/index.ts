@@ -36,15 +36,16 @@ const router = createRouter({
     ],
 })
 
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('session_token')
-  if (to.path === '/login' || to.path === '/login/callback') {
-    next()
-  } else if (!token) {
-    next('/login')
-  } else {
-    next()
-  }
+router.beforeEach((to, _from, next) => {
+    const token = localStorage.getItem('session_token')
+
+    if (to.path === '/login' || to.path === '/login/callback') {
+        next()
+    } else if (!token) {
+        next('/login')
+    } else {
+        next()
+    }
 })
 
 export default router
