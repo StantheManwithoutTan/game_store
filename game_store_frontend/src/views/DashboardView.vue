@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
-import { useAuthStore } from '../stores/auth'
+import StockMovementChart from '../components/dashboard/StockMovementChart.vue'
 import { loadDashboardData } from '../services/dashboardService'
+import { useAuthStore } from '../stores/auth'
 
 import type { Product } from '../types/product'
 import type { StockMovement } from '../types/stock'
@@ -32,7 +33,10 @@ const metrics = ref<DashboardMetrics>({
 
 const productNames = computed<Record<number, string>>(() =>
     Object.fromEntries(
-        products.value.map((product) => [product.id, product.name]),
+        products.value.map((product) => [
+          product.id,
+          product.name,
+        ]),
     ),
 )
 
@@ -134,6 +138,7 @@ onMounted(fetchDashboard)
     <nav class="navbar">
       <div>
         <p class="navbar-label">Usuario activo</p>
+
         <strong class="user-name">
           {{
             authStore.user?.name ||
@@ -155,10 +160,12 @@ onMounted(fetchDashboard)
     <header class="page-header">
       <div>
         <p class="eyebrow">Resumen operacional</p>
+
         <h1>Dashboard</h1>
+
         <p>
-          Consulta el estado actual del inventario y los movimientos
-          recientes.
+          Consulta el estado actual del inventario y los
+          movimientos recientes.
         </p>
       </div>
 
@@ -225,11 +232,38 @@ onMounted(fetchDashboard)
         </article>
       </section>
 
+      <section class="panel chart-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-label">
+              Actividad de inventario
+            </p>
+
+            <h2>Movimientos por tipo</h2>
+          </div>
+        </div>
+
+        <StockMovementChart
+            v-if="recentMovements.length > 0"
+            :movements="recentMovements"
+        />
+
+        <div
+            v-else
+            class="empty-state"
+        >
+          No hay movimientos suficientes para mostrar el gráfico.
+        </div>
+      </section>
+
       <section class="dashboard-grid">
         <article class="panel">
           <div class="panel-header">
             <div>
-              <p class="panel-label">Atención requerida</p>
+              <p class="panel-label">
+                Atención requerida
+              </p>
+
               <h2>Productos críticos</h2>
             </div>
 
@@ -264,6 +298,7 @@ onMounted(fetchDashboard)
 
               <div class="stock-value">
                 <strong>{{ product.quantity }}</strong>
+
                 <small>
                   mínimo {{ product.min_stock }}
                 </small>
@@ -275,7 +310,10 @@ onMounted(fetchDashboard)
         <article class="panel">
           <div class="panel-header">
             <div>
-              <p class="panel-label">Actividad reciente</p>
+              <p class="panel-label">
+                Actividad reciente
+              </p>
+
               <h2>Últimos movimientos</h2>
             </div>
 
@@ -313,7 +351,9 @@ onMounted(fetchDashboard)
                   v-for="movement in recentMovements"
                   :key="movement.id"
               >
-                <td>{{ formatDate(movement.created_at) }}</td>
+                <td>
+                  {{ formatDate(movement.created_at) }}
+                </td>
 
                 <td>
                   {{
@@ -326,7 +366,9 @@ onMounted(fetchDashboard)
                     <span
                         class="movement-badge"
                         :class="
-                        movementClass(movement.type_movement)
+                        movementClass(
+                          movement.type_movement,
+                        )
                       "
                     >
                       {{
@@ -481,9 +523,15 @@ onMounted(fetchDashboard)
   color: #b91c1c;
 }
 
+.chart-panel {
+  margin-bottom: 24px;
+}
+
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.5fr);
+  grid-template-columns:
+    minmax(280px, 0.8fr)
+    minmax(0, 1.5fr);
   gap: 24px;
 }
 
