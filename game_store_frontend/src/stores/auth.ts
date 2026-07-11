@@ -37,7 +37,9 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = response.data.refresh_token
         
         // Store in localStorage
-        localStorage.setItem('session_token', this.sessionToken)
+        if (this.sessionToken) {
+          localStorage.setItem('session_token', this.sessionToken)
+        }
       } catch (error) {
         console.error('Login failed', error)
         throw error
