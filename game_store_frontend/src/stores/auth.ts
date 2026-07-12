@@ -1,11 +1,16 @@
-import { defineStore } from 'pinia'  // If using Pinia for state
-import axios from 'axios'
+import { defineStore } from 'pinia'
+import api from '../services/api'
+
+interface AuthUser {
+  name?: string
+  email?: string
+}
 
 interface AuthState {
   accessToken: string | null
   idToken: string | null
   sessionToken: string | null
-  user: any | null
+  user: AuthUser | null
   refreshToken: string | null
 }
 
@@ -15,25 +20,20 @@ export const useAuthStore = defineStore('auth', {
     idToken: null,
     sessionToken: localStorage.getItem('session_token'),
     user: null,
-    refreshToken: null
+    refreshToken: null,
   }),
 
   actions: {
     async loginWithKeycloak(code: string) {
       try {
-        const response = await axios.post('http://localhost:5000/auth/login', {
-          code
+        const response = await api.post('/auth/login', {
+          code,
         })
-        
-        // Autoriza resuestas de API
-        this.accessToken = response.data.access_token
-        // Prueba identidad del usuario
-        this.idToken = response.data.id_token
-        // rastrea datos de login dentro de un cookie 
-        this.sessionToken = response.data.session_token
 
+        this.accessToken = response.data.access_token
+        this.idToken = response.data.id_token
+        this.sessionToken = response.data.session_token
         this.user = response.data.user
-        // Genera nuevos tokens de id/acceso
         this.refreshToken = response.data.refresh_token
         
         // Store in localStorage
@@ -48,8 +48,8 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        await axios.post('http://localhost:5000/auth/logout', {
-          refresh_token: this.refreshToken
+        await api.post('/auth/logout', {
+          refresh_token: this.refreshToken,
         })
       } finally {
         this.accessToken = null
@@ -57,8 +57,9 @@ export const useAuthStore = defineStore('auth', {
         this.sessionToken = null
         this.user = null
         this.refreshToken = null
+
         localStorage.removeItem('session_token')
       }
-    }
-  }
+    },
+  },
 })

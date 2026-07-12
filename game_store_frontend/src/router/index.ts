@@ -36,19 +36,16 @@ const router = createRouter({
     ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach((to, _from, next) => {
     const token = localStorage.getItem('session_token')
-    const publicRoutes = ['/login', '/login/callback']
 
-    if (publicRoutes.includes(to.path)) {
-        return true
+    if (to.path === '/login' || to.path === '/login/callback') {
+        next()
+    } else if (!token) {
+        next('/login')
+    } else {
+        next()
     }
-
-    if (!token) {
-        return '/login'
-    }
-
-    return true
 })
 
 export default router
