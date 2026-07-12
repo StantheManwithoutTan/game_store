@@ -35,7 +35,8 @@ export const useAuthStore = defineStore('auth', {
         this.sessionToken = response.data.session_token
         this.user = response.data.user
         this.refreshToken = response.data.refresh_token
-
+        
+        // Store in localStorage
         if (this.sessionToken) {
           localStorage.setItem('session_token', this.sessionToken)
         }
