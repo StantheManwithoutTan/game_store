@@ -35,3 +35,29 @@ export interface StockHistoryFilters {
     fecha_desde?: string
     fecha_hasta?: string
 }
+
+export interface StockMovementForm {
+    productId: number
+    type: StockMovementType
+    value: number
+    motive: string
+}
+
+export function createEmptyStockMovementForm():
+    StockMovementForm {
+    return {
+        productId: 0,
+        type: 'entrada',
+        value: 1,
+        motive: '',
+    }
+}
+
+export function createEmptyStockFilters():
+    StockHistoryFilters {
+    return {
+        product_id: undefined,
+        fecha_desde: '',
+        fecha_hasta: '',
+    }
+}
