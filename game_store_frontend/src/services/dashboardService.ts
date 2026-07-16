@@ -1,31 +1,45 @@
 import { getProducts } from './productService'
+
 import {
     getCriticalProducts,
     getStockHistory,
 } from './stockService'
 
-export async function loadDashboardData() {
+import type { DashboardData } from '../types/dashboard'
+
+export async function loadDashboardData():
+    Promise<DashboardData> {
     const [
-        products,
+        productResult,
         criticalProducts,
         movements,
     ] = await Promise.all([
-        getProducts({ per_page: 100 }),
+        getProducts({
+            page: 1,
+            per_page: 100,
+        }),
         getCriticalProducts(),
         getStockHistory(),
     ])
 
+    const products = productResult.products
+    const recentMovements = movements.slice(0, 10)
+
     return {
         products,
         criticalProducts,
-        recentMovements: movements.slice(0, 10),
+        recentMovements,
+
         metrics: {
             totalProducts: products.length,
             criticalProducts: criticalProducts.length,
+
             totalUnits: products.reduce(
-                (sum, product) => sum + product.quantity,
+                (total, product) =>
+                    total + product.quantity,
                 0,
             ),
+
             totalMovements: movements.length,
         },
     }
