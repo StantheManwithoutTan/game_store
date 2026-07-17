@@ -15,6 +15,8 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 from urllib.parse import quote
 
+from telemetry import setup_telemetry
+
 load_dotenv()
 
 metrics = None
@@ -38,6 +40,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     api.init_app(app)
     limiter.init_app(app)
+
+    setup_telemetry(app)
 
     metrics = PrometheusMetrics(app)
     register_blueprints(api)
