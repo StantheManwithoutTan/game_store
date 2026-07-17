@@ -113,6 +113,7 @@ services:
       - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - prometheus
+      - tempo
   alloy:
     image: grafana/alloy:latest
     ports:
