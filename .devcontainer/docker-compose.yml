@@ -103,6 +103,7 @@ services:
       - "9090:9090"
     depends_on:
       - backend
+      - alertmanager 
 
   grafana:
     image: grafana/grafana:latest
@@ -123,6 +124,7 @@ services:
       - tempo
     volumes:
     - ./alloy/config.alloy:/etc/alloy/config.alloy
+    - /var/run/docker.sock:/var/run/docker.sock:ro
     command: ["run", "/etc/alloy/config.alloy"]
 
   tempo:
@@ -135,6 +137,21 @@ services:
       - "4318"   # OTLP HTTP
     ports:
       - "3200:3200"   # API de Tempo
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    ports:
+      - "9093:9093"
 
 volumes:
   postgres-data:
