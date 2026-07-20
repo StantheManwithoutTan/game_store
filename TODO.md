@@ -475,17 +475,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/opentelemetry-loki-tempo`
 
-- [ ] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
+- [X] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
   - `pip install opentelemetry-sdk opentelemetry-instrumentation-flask opentelemetry-exporter-otlp`
   - Configurar `TracerProvider` con exportador OTLP hacia Alloy (puertos 4317/4318)
   - Instrumentar queries SQLAlchemy para que aparezcan como spans en las trazas
 
-- [ ] **Agregar Alloy, Tempo y Loki al Docker Compose**
+- [X] **Agregar Alloy, Tempo y Loki al Docker Compose**
   - Verificar que las trazas llegan a Tempo y son visibles en Grafana
   - Configurar logging estructurado en Flask: emitir `traceId`, `spanId`, `correlationId`, usuario y endpoint
   - Enviar logs a Loki vía Alloy y verificar búsqueda en Grafana
 
-- [ ] **Configurar reglas de Alertmanager**
+- [X] **Configurar reglas de Alertmanager**
   - Alerta: error rate > 5% en 5 minutos
   - Alerta: latencia p95 > 1 segundo
   - Alerta: fallos de autenticación > 10 en 1 minuto
