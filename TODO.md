@@ -496,18 +496,18 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/grafana-dashboards`
 
-- [ ] **Crear los 4 dashboards requeridos en Grafana**
+- [X] **Crear los 4 dashboards requeridos en Grafana**
   - **Infraestructura**: CPU, memoria, disco y red del host Docker
   - **Aplicación**: request rate, latencia p50/p95/p99, error rate
   - **Negocio**: total productos, movimientos de stock por hora, productos críticos
   - **Seguridad**: intentos de login fallidos, tokens inválidos, accesos 403
 
-- [ ] **Configurar provisioning y verificar que todo levanta solo**
+- [O] **Configurar provisioning y verificar que todo levanta solo**
   - Exportar dashboards como JSON en `grafana/dashboards/` del repo
   - Configurar provisioning de Grafana para carga automática al hacer `docker-compose up`
   - Agregar panel de trazas distribuidas: ver request completo con spans de API y BD
 
-- [ ] **Actualizar README con capturas de los dashboards**
+- [O] **Actualizar README con capturas de los dashboards**
   - Verificar que `docker-compose up` levanta todo el stack sin pasos manuales
 
 ---
