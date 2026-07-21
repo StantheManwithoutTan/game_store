@@ -38,9 +38,16 @@ loki.source.docker "docker_logs" {
   targets    = discovery.docker.all.targets
   forward_to = [loki.process.filter_backend.receiver]
 }
+
+
 loki.process "filter_backend" {
   stage.match {
     selector = "{container_name=~\".*backend.*\"}"
+    stage.static_labels {
+      values = {
+        service_name = "game-store-api",
+      }
+    }
     stage.json {
       expressions = {
         level          = "level",
