@@ -2,6 +2,8 @@ from functools import wraps
 from flask import request, jsonify, current_app, session
 import jwt
 
+from metrics import forbidden_access
+
 def require_permission(*scopes):
     def decorator(f):
         @wraps(f)
@@ -31,6 +33,7 @@ def require_permission(*scopes):
             user_roles = set(payload.get('roles', []))
             # Si no encuentra el rol de usuario con el scope (product,manage como ejemplo), ponga un error 403 
             if not any(s in user_roles for s in scopes):
+                forbidden_access.inc() 
                 return jsonify({'error': 'Forbidden'}), 403
 
             return f(*args, **kwargs)

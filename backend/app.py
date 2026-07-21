@@ -17,6 +17,8 @@ from urllib.parse import quote
 
 from telemetry import setup_telemetry, setup_logging
 
+from metrics import login_failures, token_invalid
+
 load_dotenv()
 
 metrics = None
@@ -204,6 +206,7 @@ def login():
         }), 200
 
     except Exception as e:
+        login_failures.inc()  
         return jsonify({'error': str(e)}), 401
 
 
@@ -251,6 +254,7 @@ def verify_token():
         )
         return jsonify({'valid': True, 'user': payload}), 200
     except jwt.InvalidTokenError:
+        token_invalid.inc()  
         return jsonify({'valid': False}), 401
 
 @app.route('/auth/refresh', methods=['POST'])
@@ -284,6 +288,7 @@ def refresh():
             'session_token': session_token
         }), 200
     except Exception as e:
+        token_invalid.inc() 
         return jsonify({'error': str(e)}), 401
 
 
