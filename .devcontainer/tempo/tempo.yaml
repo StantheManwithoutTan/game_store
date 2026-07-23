@@ -12,6 +12,15 @@ distributor:
         http:
           endpoint: 0.0.0.0:4318
 
+metrics_generator:
+  processor:
+    service_graphs: {}
+    span_metrics: {}
+  registry:
+    collection_interval: 15s
+  storage:
+    path: /tmp/tempo/generator/wal
+
 storage:
   trace:
     backend: local
@@ -21,4 +30,4 @@ storage:
 overrides:
   defaults:
     metrics_generator:
-      processors: []
+      processors: [service-graphs, span-metrics, local-blocks]
