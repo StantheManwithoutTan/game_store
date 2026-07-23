@@ -64,6 +64,23 @@ keycloak_openid = KeycloakOpenID(
 KEYCLOAK_EXTERNAL = os.environ.get('KEYCLOAK_SERVER_URL_EXTERNAL', 'http://localhost:8080')
 
 
+def extract_roles(access_payload):
+    realm_roles = access_payload.get(
+        'realm_access',
+        {},
+    ).get('roles', [])
+
+    client_roles = access_payload.get(
+        'resource_access',
+        {},
+    ).get(
+        keycloak_openid.client_id,
+        {},
+    ).get('roles', [])
+
+    return list(set(realm_roles + client_roles))
+
+
 
 @app.route('/')
 def home():
@@ -107,7 +124,7 @@ def openid_connect():
         access_token = token['access_token']
         # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
         access_payload = jwt.decode(access_token, options={"verify_signature": False})
-        roles = access_payload.get('realm_access', {}).get('roles', [])
+        roles = extract_roles(access_payload)
         session['id_token'] = token['id_token']
 
         session_token = jwt.encode(
@@ -127,7 +144,7 @@ def openid_connect():
             'email': id_token.get('email'),
             'name': id_token.get('name')
         }
-        
+
         session['session_token'] = session_token
         session['access_token'] = token['access_token']
         session['refresh_token'] = token.get('refresh_token')
@@ -158,7 +175,7 @@ def login():
 
         access_token = token['access_token']
         access_payload = jwt.decode(access_token, options={"verify_signature": False})
-        roles = access_payload.get('realm_access', {}).get('roles', [])
+        roles = extract_roles(access_payload)
 
 
         session_token = jwt.encode(
@@ -242,7 +259,7 @@ def refresh():
         new_token = keycloak_openid.refresh_token(refresh_token)
         access_payload = jwt.decode(new_token['access_token'], options={"verify_signature": False})
         id_payload = jwt.decode(new_token['id_token'], options={"verify_signature": False})
-        roles = access_payload.get('realm_access', {}).get('roles', [])
+        roles = extract_roles(access_payload)
         session_token = jwt.encode(
             {
                 'sub': id_payload['sub'],

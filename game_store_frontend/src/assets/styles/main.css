@@ -1,0 +1,10 @@
+@import './variables.css';
+@import './reset.css';
+@import './utilities.css';
+
+@import './components/buttons.css';
+@import './components/alerts.css';
+
+@import './pages/products.css';
+@import './pages/dashboard.css';
+@import './pages/stock.css';

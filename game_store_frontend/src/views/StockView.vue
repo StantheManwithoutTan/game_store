@@ -1,106 +1,129 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import AppAlert from '../components/common/AppAlert.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 
-const API = 'http://localhost:5000/api/products'
+import CriticalStockList from '../components/stock/CriticalStockList.vue'
+import StockFilters from '../components/stock/StockFilters.vue'
+import StockHistoryTable from '../components/stock/StockHistoryTable.vue'
+import StockMovementForm from '../components/stock/StockMovementForm.vue'
+import StockSummaryTable from '../components/stock/StockSummaryTable.vue'
 
-interface Product {
-  id: number; name: string; sku: string; quantity: number
-  min_stock: number; status: string, critico_stock: boolean
-}
+import { useStock } from '../composables/useStock'
 
-const router = useRouter()
-const products = ref<Product[]>([])
-const loading = ref(false)
-const savingId = ref<number | null>(null)
-const error = ref('')
+const {
+  products,
+  criticalProducts,
+  movements,
 
-function authHeaders() {
-  const token = localStorage.getItem('session_token')
-  return { 
-    Authorization: `Bearer ${token}` 
-  }
-}
+  loading,
+  submitting,
+  filtering,
 
-function stockLevelClass(p: Product): string {
-    if (p.critico_stock) return 'level-danger'
-    if (p.quantity <= p.min_stock * 2) return 'level-warning'
-    return 'level-ok'
-}
+  error,
+  successMessage,
 
-async function fetchProducts() {
-  loading.value = true
-  try {
-    const res = await axios.get(API, { headers: authHeaders(), params: { per_page: 100 } })
-    products.value = res.data
-  } catch (e: any) {
-    if (e.response?.status === 401) 
-     router.push('/login')
-    else 
-      error.value = 'Error al cargar stock'
-  } finally { 
-    loading.value = false 
-  }
-}
+  filters,
+  form,
 
-async function updateStock(p: Product) {
-  savingId.value = p.id
-  try {
-    await axios.put(`${API}/${p.id}`, { quantity: p.quantity, min_stock: p.min_stock }, { headers: authHeaders() })
-  } catch (e: any) {
-    if (e.response?.status === 401) 
-      router.push('/login')
-    else if (e.response?.status === 403)
-      error.value = 'No tienes permiso para gestionar stock'
-    else 
-      error.value = 'Error al actualizar stock'
-  } finally { 
-      savingId.value = null 
-  }
-}
+  productNames,
+  selectedProduct,
+  valueLabel,
 
-onMounted(fetchProducts)
+  submitMovement,
+  applyFilters,
+  clearFilters,
+} = useStock()
 </script>
 
-
 <template>
-  <div class="stock">
-    <h1>Gestión de Stock</h1>
+  <main class="stock-page">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">
+          Inventario
+        </p>
 
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="loading" class="loading">Cargando...</div>
+        <h1>Control de stock</h1>
 
-    <table v-else-if="products.length">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>SKU</th>
-          <th>Cantidad</th>
-          <th>Stock Mínimo</th>
-          <th>Estado</th>
-          <th>Critico</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in products" :key="p.id" :class="stockLevelClass(p)">
-          <td>{{ p.name }}</td>
-          <td>{{ p.sku }}</td>
-          <td><input v-model.number="p.quantity" type="number" min="0" /></td>
-          <td><input v-model.number="p.min_stock" type="number" min="0" /></td>
-          <td>{{ p.status }}</td>
-          <td>{{ p.critico_stock ? 'Sí' : 'No' }}</td>
-          <td><button @click="updateStock(p)" :disabled="savingId === p.id">Guardar</button></td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-else class="empty">No hay productos.</div>
-  </div>
+        <p class="page-description">
+          Registra entradas, salidas y ajustes, y consulta
+          el historial de movimientos.
+        </p>
+      </div>
+
+      <RouterLink
+          class="btn btn-outline"
+          to="/dashboard"
+          aria-label="Volver al dashboard"
+      >
+        Volver al dashboard
+      </RouterLink>
+    </header>
+
+    <AppAlert
+        v-if="error"
+        type="error"
+    >
+      {{ error }}
+    </AppAlert>
+
+    <AppAlert
+        v-if="successMessage"
+        type="success"
+    >
+      {{ successMessage }}
+    </AppAlert>
+
+    <LoadingState
+        v-if="loading"
+        message="Cargando información de inventario..."
+    />
+
+    <template v-else>
+      <section class="inventory-grid">
+        <StockMovementForm
+            v-model="form"
+            :products="products"
+            :selected-product="selectedProduct"
+            :value-label="valueLabel"
+            :submitting="submitting"
+            @submit="submitMovement"
+        />
+
+        <CriticalStockList
+            :products="criticalProducts"
+        />
+      </section>
+
+      <StockSummaryTable
+          :products="products"
+      />
+
+      <section class="panel history-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-label">
+              Trazabilidad
+            </p>
+
+            <h2>Historial de movimientos</h2>
+          </div>
+        </div>
+
+        <StockFilters
+            v-model="filters"
+            :products="products"
+            :filtering="filtering"
+            @apply="applyFilters"
+            @clear="clearFilters"
+        />
+
+        <StockHistoryTable
+            :movements="movements"
+            :product-names="productNames"
+        />
+      </section>
+    </template>
+  </main>
 </template>
 
-<style lang="css" scoped>
-  .level-danger { background: #ffe0e0; }
-  .level-warning { background: #fff3cd; }
-  .level-ok { background: #d4edda; }
-</style>

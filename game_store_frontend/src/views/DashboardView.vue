@@ -1,56 +1,114 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
+import AppAlert from '../components/common/AppAlert.vue'
+import AppNavbar from '../components/common/AppNavbar.vue'
+import LoadingState from '../components/common/LoadingState.vue'
+
+import CriticalProductsList from '../components/dashboard/CriticalProductsList.vue'
+import DashboardChartPanel from '../components/dashboard/DashboardChartPanel.vue'
+import DashboardMetrics from '../components/dashboard/DashboardMetrics.vue'
+import RecentMovementsTable from '../components/dashboard/RecentMovementsTable.vue'
+
+import { useDashboard } from '../composables/useDashboard'
+import { useLogout } from '../composables/useLogout'
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
 
-async function handleLogout() {
-  await authStore.logout()
-  const logoutUrl = 'http://localhost:8080/realms/game-store/protocol/openid-connect/logout' +
-    '?client_id=game-store-client' +
-    '&post_logout_redirect_uri=' + encodeURIComponent('http://localhost:5173/login')
-  window.location.href = logoutUrl
-}
+const {
+  criticalProducts,
+  recentMovements,
+  metrics,
+  productNames,
+  loading,
+  error,
+} = useDashboard()
+
+const {
+  loggingOut,
+  logout,
+} = useLogout()
+
+const userName = computed(
+    () =>
+        authStore.user?.name ||
+        authStore.user?.email ||
+        'Usuario',
+)
 </script>
+
 <template>
-  <div class="dashboard">
-    <nav class="navbar">
-      <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-      <button class="btn-logout" @click="handleLogout">Cerrar sesión</button>
-    </nav>
+  <main class="dashboard-page">
+    <AppNavbar
+        :user-name="userName"
+        :logging-out="loggingOut"
+        @logout="logout"
+    />
 
-    <h1>Dashboard</h1>
-    <p>Bienvenido al sistema Game Store.</p>
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">
+          Resumen operacional
+        </p>
 
-    <div class="actions">
-      <router-link to="/productos">
-        <button>Gestionar Productos</button>
-      </router-link>
-      <router-link to="/stock">
-        <button>Gestionar Stock</button>
-      </router-link>
-    </div>
-  </div>
+        <h1>Dashboard</h1>
+
+        <p>
+          Consulta el estado actual del inventario y los
+          movimientos recientes.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <RouterLink
+            class="btn btn-secondary"
+            to="/productos"
+        >
+          Gestionar productos
+        </RouterLink>
+
+        <RouterLink
+            class="btn btn-primary"
+            to="/stock"
+        >
+          Controlar stock
+        </RouterLink>
+      </div>
+    </header>
+
+    <AppAlert
+        v-if="error"
+        type="error"
+    >
+      {{ error }}
+    </AppAlert>
+
+    <LoadingState
+        v-if="loading"
+        message="Cargando dashboard..."
+    />
+
+    <template v-else>
+      <DashboardMetrics
+          :metrics="metrics"
+      />
+
+      <DashboardChartPanel
+          :movements="recentMovements"
+      />
+
+      <section class="dashboard-grid">
+        <CriticalProductsList
+            :products="criticalProducts"
+        />
+
+        <RecentMovementsTable
+            :movements="recentMovements"
+            :product-names="productNames"
+        />
+      </section>
+    </template>
+  </main>
 </template>
 
-<style scoped>
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 24px;
-}
-.user-name { font-weight: 500; color: #333; }
-.btn-logout {
-  padding: 8px 20px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.btn-logout:hover { background: #c0392b; }
-
-</style>
