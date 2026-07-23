@@ -98,6 +98,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alertmanager/rules.yml:/etc/prometheus/rules.yml
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"
@@ -120,12 +121,13 @@ services:
     ports:
       - "4317:4317"
       - "4318:4318"
+      - "12345:12345"
     depends_on:
       - tempo
     volumes:
-    - ./alloy/config.alloy:/etc/alloy/config.alloy
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: ["run", "/etc/alloy/config.alloy"]
+    - ./alloy/config.alloy:/etc/alloy/config.alloy
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
 
   tempo:
     image: grafana/tempo:2.8.0
