@@ -96,6 +96,9 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alertmanager/rules.yml:/etc/prometheus/rules.yml
@@ -104,7 +107,7 @@ services:
       - "9090:9090"
     depends_on:
       - backend
-      - alertmanager 
+      - alertmanager
 
   grafana:
     image: grafana/grafana:latest
@@ -131,7 +134,9 @@ services:
 
   tempo:
     image: grafana/tempo:2.8.0
-    command: ["-config.file=/etc/tempo.yaml"]
+    command:
+    - "-config.file=/etc/tempo.yaml"
+    - "--target=all"
     volumes:
       - ./tempo/tempo.yaml:/etc/tempo.yaml
     expose:
