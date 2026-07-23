@@ -270,6 +270,60 @@ Resultado esperado:
 
 ---
 
+
+
+
+
+# Probando alertas con AlertManager:
+
+# Para probar alerta de high auth failure:
+1..12 | ForEach-Object {
+    try {
+        $response = Invoke-RestMethod -Uri "http://localhost:5000/auth/login" -Method Post -Body '{"code":"invalido"}' -ContentType "application/json"
+        Write-Host "Éxito: $response" -ForegroundColor Green
+    } catch {
+        # Captura la respuesta de error del servidor
+        $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+        $errResponse = $streamReader.ReadToEnd()
+        Write-Host "Error capturado: $errResponse" -ForegroundColor Yellow
+    }
+}
+
+
+
+
+# Para probar todas las alertas: 
+$body = '[
+    {
+        "labels": {
+            "alertname": "TestAlert",
+            "severity": "critical",
+            "job": "flask"
+        },
+        "annotations": {
+            "summary": "Simulando alerta directa sin Prometheus"
+        }
+    }
+]'
+
+Invoke-RestMethod -Uri "http://localhost:9093/api/v2/alerts" -Method Post -Body $body -ContentType "application/json"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Estado del Proyecto (Día 7)
 
 ## Completado
