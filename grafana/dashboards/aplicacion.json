@@ -4,20 +4,20 @@
   "metadata": {
     "name": "addbqxz",
     "namespace": "default",
-    "uid": "b4959307-7a90-41e6-8e9d-e6b1bb59a2d8",
-    "resourceVersion": "1784605868392007",
+    "uid": "ff94f4f1-6d1f-4032-8abd-9f0bdd5097dd",
+    "resourceVersion": "1784666308601009",
     "generation": 1,
-    "creationTimestamp": "2026-07-21T03:51:07Z",
+    "creationTimestamp": "2026-07-21T20:38:28Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "3254411399421952"
+      "grafana.app/deprecatedInternalID": "3507919048990720"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "Game Store",
-      "grafana.app/sourceChecksum": "38cad77b70a1c1eb10bbc83547619a4e",
-      "grafana.app/sourcePath": "/etc/grafana/provisioning/dashboards/game-store-dashboard.json",
-      "grafana.app/sourceTimestamp": "1784603282000",
+      "grafana.app/sourceChecksum": "d27c4db12e73443ad2ba5db98a01c1d7",
+      "grafana.app/sourcePath": "/etc/grafana/provisioning/dashboards/aplicacion.json",
+      "grafana.app/sourceTimestamp": "1784607163000",
       "grafana.app/folder": ""
     }
   },
@@ -81,124 +81,6 @@
           "id": 1,
           "links": [],
           "title": "Solicitudes Creadas de HTTP de FLASK",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "color": {
-                    "mode": "palette-classic"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  },
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
-              },
-              "options": {
-                "annotations": {
-                  "clustering": -1,
-                  "multiLane": false
-                },
-                "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "single",
-                  "sort": "none"
-                }
-              }
-            },
-            "version": "13.0.2"
-          }
-        }
-      },
-      "panel-10": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "PBFA97CFB590B2093"
-                      },
-                      "group": "prometheus",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "expr": "rate(flask_http_request_total{status=~\"5..\"}[5m]) / rate(flask_http_request_total[5m]) * 100",
-                        "legendFormat": "__auto",
-                        "range": true
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "",
-          "id": 10,
-          "links": [],
-          "title": "Error Rate",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -875,19 +757,6 @@
               "width": 12,
               "x": 12,
               "y": 16
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-10"
-              },
-              "height": 8,
-              "width": 12,
-              "x": 0,
-              "y": 24
             }
           }
         ]
