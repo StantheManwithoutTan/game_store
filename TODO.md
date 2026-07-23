@@ -502,12 +502,12 @@ git branch -d feature/setup
   - **Negocio**: total productos, movimientos de stock por hora, productos críticos
   - **Seguridad**: intentos de login fallidos, tokens inválidos, accesos 403
 
-- [O] **Configurar provisioning y verificar que todo levanta solo**
+- [X] **Configurar provisioning y verificar que todo levanta solo**
   - Exportar dashboards como JSON en `grafana/dashboards/` del repo
   - Configurar provisioning de Grafana para carga automática al hacer `docker-compose up`
   - Agregar panel de trazas distribuidas: ver request completo con spans de API y BD
 
-- [O] **Actualizar README con capturas de los dashboards**
+- [X] **Actualizar README con capturas de los dashboards**
   - Verificar que `docker-compose up` levanta todo el stack sin pasos manuales
 
 ---
