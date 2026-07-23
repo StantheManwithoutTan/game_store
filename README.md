@@ -277,15 +277,14 @@ Resultado esperado:
 # Probando alertas con AlertManager:
 
 # Para probar alerta de high auth failure:
-1..12 | ForEach-Object {
+1..15 | ForEach-Object {
     try {
-        $response = Invoke-RestMethod -Uri "http://localhost:5000/auth/login" -Method Post -Body '{"code":"invalido"}' -ContentType "application/json"
-        Write-Host "Éxito: $response" -ForegroundColor Green
+        $response = Invoke-WebRequest -Uri "http://localhost:5000/auth/login" -Method Post -Body '{"code":"invalido"}' -ContentType "application/json" -UseBasicParsing
+        Write-Host "Success Status: $($response.StatusCode)" -ForegroundColor Green
     } catch {
-        # Captura la respuesta de error del servidor
-        $streamReader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-        $errResponse = $streamReader.ReadToEnd()
-        Write-Host "Error capturado: $errResponse" -ForegroundColor Yellow
+        # Catch and print the exact numerical status code
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        Write-Host "Error Status Code: $statusCode" -ForegroundColor Yellow
     }
 }
 
