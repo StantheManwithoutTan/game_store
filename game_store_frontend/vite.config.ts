@@ -6,11 +6,12 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   test: {
-    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{ts,js,tsx,jsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
     },
   },
 })
