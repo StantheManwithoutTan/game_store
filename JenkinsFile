@@ -33,7 +33,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_service.py tests/test_stock_service.py \
                 -v \
-                --cov=app --cov-report=xml --cov-report=term \
+                --cov=. --cov-report=xml:results/coverage.xml --cov-report=term \
                 --junitxml=/app/results/unit.xml
                 '''
 
@@ -56,7 +56,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_api.py \
                 -v \
-                --cov=app --cov-report=xml --cov-report=term \
+                --cov=. --cov-report=xml:results/coverage.xml --cov-report=term \
                 --junitxml=/app/results/api.xml
                 '''
 
@@ -83,7 +83,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_integration.py \
                 -v \
-                --cov=app --cov-report=xml --cov-report=term \
+                --cov=. --cov-report=xml:results/coverage.xml --cov-report=term \
                 --junitxml=/app/results/integration.xml
                 '''
 
@@ -109,7 +109,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_stock_integration.py \
                 -v \
-                --cov=app --cov-report=xml --cov-report=term \
+                --cov=. --cov-report=xml:results/coverage.xml --cov-report=term \
                 --junitxml=/app/results/stock_integration.xml
                 '''
 
