@@ -1,7 +1,9 @@
 pipeline {
 
     agent any
-
+    environment {
+        SONAR_TOKEN = credentials('SONAR_TOKEN')
+    }
     stages {
 
         stage('Prepare') {
@@ -30,14 +32,13 @@ pipeline {
                 sh '''
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_service.py tests/test_stock_service.py \
-                -v --junitxml=/app/results/unit.xml
+                -v \
+                --cov=app --cov-report=xml --cov-report=term \
+                --junitxml=/app/results/unit.xml
                 '''
 
-                sh '''
-                docker cp \
-                devcontainer-backend-1:/app/results/unit.xml \
-                results/unit.xml
-                '''
+                sh 'docker cp devcontainer-backend-1:/app/results/unit.xml results/unit.xml'
+                sh 'docker cp devcontainer-backend-1:/app/results/coverage.xml results/coverage.xml'
             }
 
             post {
@@ -55,6 +56,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_api.py \
                 -v \
+                --cov=app --cov-report=xml --cov-report=term \
                 --junitxml=/app/results/api.xml
                 '''
 
@@ -63,6 +65,7 @@ pipeline {
                 devcontainer-backend-1:/app/results/api.xml \
                 results/api.xml
                 '''
+                sh 'docker cp devcontainer-backend-1:/app/results/coverage.xml results/coverage.xml'
             }
 
             post {
@@ -80,6 +83,7 @@ pipeline {
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_product_integration.py \
                 -v \
+                --cov=app --cov-report=xml --cov-report=term \
                 --junitxml=/app/results/integration.xml
                 '''
 
@@ -88,6 +92,7 @@ pipeline {
                 devcontainer-backend-1:/app/results/integration.xml \
                 results/integration.xml
                 '''
+                sh 'docker cp devcontainer-backend-1:/app/results/coverage.xml results/coverage.xml'
             }
 
             post {
@@ -99,15 +104,36 @@ pipeline {
         stage('Stock Integration Tests') {
             steps {
                 sh 'docker exec devcontainer-backend-1 mkdir -p /app/results'
+
                 sh '''
                 docker exec devcontainer-backend-1 \
                 pytest tests/test_stock_integration.py \
-                -v --junitxml=/app/results/stock_integration.xml
+                -v \
+                --cov=app --cov-report=xml --cov-report=term \
+                --junitxml=/app/results/stock_integration.xml
                 '''
+
+
                 sh 'docker cp devcontainer-backend-1:/app/results/stock_integration.xml results/stock_integration.xml'
+                sh 'docker cp devcontainer-backend-1:/app/results/coverage.xml results/coverage.xml'
             }
             post {
                 always { junit 'results/stock_integration.xml' }
+            }
+        }
+        stage('SonarCloud Analysis') {
+            steps {
+                withSonarQubeEnv('SonarCloud') {
+                sh 'sonar-scanner'
+                }
+            }
+            }
+
+            stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
