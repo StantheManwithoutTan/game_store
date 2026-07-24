@@ -6,4 +6,12 @@ RUN apt-get update && \
     apt-get install -y docker.io && \
     apt-get clean
 
+RUN apt-get update && \
+    apt-get install -y docker.io unzip && \
+    wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-7.0.2.4839-linux-x64.zip && \
+    unzip sonar-scanner-cli-7.0.2.4839-linux-x64.zip -d /opt && \
+    ln -s /opt/sonar-scanner-7.0.2.4839-linux-x64/bin/sonar-scanner /usr/local/bin/sonar-scanner && \
+    rm sonar-scanner-cli-7.0.2.4839-linux-x64.zip && \
+    apt-get clean
+
 USER jenkins
