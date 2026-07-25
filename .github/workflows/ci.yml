@@ -10,24 +10,118 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+
       - name: Install security tools
         run: pip install pip-audit
+
       - name: Audit Python dependencies
         run: pip-audit -r requirements.txt
+
       - name: Product Unit tests
         run: pytest tests/test_product_service.py -v --cov=services --cov=models --cov-report=xml
+
       - name: Stock Unit tests
         run: pytest tests/test_stock_service.py -v --cov=services --cov=models --cov-report=xml
-      - name: Product Api tests
+
+      - name: Product API tests
         run: pytest tests/test_product_api.py -v --cov=services --cov=models --cov-append --cov-report=xml
+
       - name: Product Integration tests
         run: pytest tests/test_product_integration.py -v --cov=services --cov=models --cov-append --cov-report=xml
+
       - name: Stock Integration tests
         run: pytest tests/test_stock_integration.py -v --cov=services --cov=models --cov-append --cov-report=xml
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
+
+  security-zap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create CI environment file
+        run: |
+          cat <<EOF > .devcontainer/.env
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=postgres
+          POSTGRES_DB=game_store
+          DATABASE_HOST=db
+          DATABASE_PORT=5432
+          SECRET_KEY=ci-security-test-secret
+          FRONTEND_URL=http://localhost:5173
+          KEYCLOAK_SERVER_URL=http://keycloak:8080
+          KEYCLOAK_SERVER_URL_EXTERNAL=http://localhost:8080
+          KEYCLOAK_CLIENT_ID=game-store-client
+          KEYCLOAK_REALM=game-store
+          KEYCLOAK_CLIENT_SECRET=
+          EOF
+
+      - name: Validate Docker Compose configuration
+        run: docker compose -f .devcontainer/docker-compose.yml config --quiet
+
+      - name: Start backend services
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml up -d --build db tempo alloy backend
+
+      - name: Wait for backend
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:5000/login > /dev/null; then
+              echo "Backend is ready"
+              exit 0
+            fi
+
+            echo "Waiting for backend... attempt $i/30"
+            sleep 5
+          done
+
+          echo "Backend did not start in time"
+          docker compose -f .devcontainer/docker-compose.yml ps
+          docker compose -f .devcontainer/docker-compose.yml logs --no-color backend
+          exit 1
+
+      - name: Prepare ZAP report directory
+        run: |
+          mkdir -p security
+          chmod 777 security
+
+      - name: Run OWASP ZAP baseline scan
+        run: |
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}/security:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:5000 \
+            -r zap-report.html \
+            -I
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-report
+          path: security/zap-report.html
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          docker compose -f .devcontainer/docker-compose.yml ps
+          docker compose -f .devcontainer/docker-compose.yml logs --no-color backend
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f .devcontainer/docker-compose.yml down -v --remove-orphans
