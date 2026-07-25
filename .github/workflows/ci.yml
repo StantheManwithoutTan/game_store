@@ -15,9 +15,13 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Install security tools
+        run: pip install pip-audit
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
       - name: Product Unit tests
         run: pytest tests/test_product_service.py -v --cov=services --cov=models --cov-report=xml
-      - name: Product Unit tests
+      - name: Stock Unit tests
         run: pytest tests/test_stock_service.py -v --cov=services --cov=models --cov-report=xml
       - name: Product Api tests
         run: pytest tests/test_product_api.py -v --cov=services --cov=models --cov-append --cov-report=xml
