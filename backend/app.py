@@ -29,6 +29,10 @@ def create_app(config_class=Config):
     app = Flask(__name__)
 
     app.config.from_object(config_class)
+    app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
+    app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
+    if os.environ.get('FLASK_ENV') == 'production':
+        app.config.setdefault('SESSION_COOKIE_SECURE', True)
 
     CORS(
         app,
