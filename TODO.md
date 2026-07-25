@@ -475,17 +475,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/opentelemetry-loki-tempo`
 
-- [ ] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
+- [X] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
   - `pip install opentelemetry-sdk opentelemetry-instrumentation-flask opentelemetry-exporter-otlp`
   - Configurar `TracerProvider` con exportador OTLP hacia Alloy (puertos 4317/4318)
   - Instrumentar queries SQLAlchemy para que aparezcan como spans en las trazas
 
-- [ ] **Agregar Alloy, Tempo y Loki al Docker Compose**
+- [X] **Agregar Alloy, Tempo y Loki al Docker Compose**
   - Verificar que las trazas llegan a Tempo y son visibles en Grafana
   - Configurar logging estructurado en Flask: emitir `traceId`, `spanId`, `correlationId`, usuario y endpoint
   - Enviar logs a Loki vía Alloy y verificar búsqueda en Grafana
 
-- [ ] **Configurar reglas de Alertmanager**
+- [X] **Configurar reglas de Alertmanager**
   - Alerta: error rate > 5% en 5 minutos
   - Alerta: latencia p95 > 1 segundo
   - Alerta: fallos de autenticación > 10 en 1 minuto
@@ -496,18 +496,18 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/grafana-dashboards`
 
-- [ ] **Crear los 4 dashboards requeridos en Grafana**
+- [X] **Crear los 4 dashboards requeridos en Grafana**
   - **Infraestructura**: CPU, memoria, disco y red del host Docker
   - **Aplicación**: request rate, latencia p50/p95/p99, error rate
   - **Negocio**: total productos, movimientos de stock por hora, productos críticos
   - **Seguridad**: intentos de login fallidos, tokens inválidos, accesos 403
 
-- [ ] **Configurar provisioning y verificar que todo levanta solo**
+- [X] **Configurar provisioning y verificar que todo levanta solo**
   - Exportar dashboards como JSON en `grafana/dashboards/` del repo
   - Configurar provisioning de Grafana para carga automática al hacer `docker-compose up`
   - Agregar panel de trazas distribuidas: ver request completo con spans de API y BD
 
-- [ ] **Actualizar README con capturas de los dashboards**
+- [X] **Actualizar README con capturas de los dashboards**
   - Verificar que `docker-compose up` levanta todo el stack sin pasos manuales
 
 ---

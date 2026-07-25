@@ -270,6 +270,77 @@ Resultado esperado:
 
 ---
 
+
+
+
+
+# Probando alertas con AlertManager:
+
+# Para probar alerta de high auth failure:
+1..15 | ForEach-Object {
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:5000/auth/login" -Method Post -Body '{"code":"invalido"}' -ContentType "application/json" -UseBasicParsing
+        Write-Host "Success Status: $($response.StatusCode)" -ForegroundColor Green
+    } catch {
+        # Catch and print the exact numerical status code
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        Write-Host "Error Status Code: $statusCode" -ForegroundColor Yellow
+    }
+}
+
+
+
+
+# Para probar todas las alertas: 
+$body = '[
+    {
+        "labels": {
+            "alertname": "TestAlert",
+            "severity": "critical",
+            "job": "flask"
+        },
+        "annotations": {
+            "summary": "Simulando alerta directa sin Prometheus"
+        }
+    }
+]'
+
+Invoke-RestMethod -Uri "http://localhost:9093/api/v2/alerts" -Method Post -Body $body -ContentType "application/json"
+
+
+
+# Dashboards de Grafana
+
+Dashboard de Aplicacion:
+<img width="1606" height="840" alt="aplicacion" src="https://github.com/user-attachments/assets/c640b6e6-a2ad-488f-bb2f-2eecd83ed148" />
+
+Dashboard de Infraestructura:
+<img width="1663" height="906" alt="infraestructura" src="https://github.com/user-attachments/assets/47563677-e335-4d90-a75a-721bb769f880" />
+
+Dashboard de Negocio:
+<img width="1667" height="510" alt="negocio" src="https://github.com/user-attachments/assets/b0994f84-763e-47fe-b02f-ef36a24bfa5b" />
+
+
+Dashboard de Seguridad:
+<img width="1666" height="498" alt="seguridad" src="https://github.com/user-attachments/assets/091c3f73-e52c-4c5a-ace8-e98ecbadceef" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Estado del Proyecto (Día 7)
 
 ## Completado

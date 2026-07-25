@@ -10,6 +10,9 @@ from services.product_service import ProductService
 from services.stock_service import StockService
 from decorators import require_permission
 
+from metrics import stock_movements_total, products_total, critical_products
+from models import Product, StockMovement
+
 
 blp_games = Blueprint(
     "games", "games", url_prefix="/api/games", description="Video games"
@@ -65,6 +68,8 @@ class ProductList(MethodView):
             category=category,
             status=status
         )
+
+        products_total.set(Product.query.count())
 
         return products.items
 
@@ -150,6 +155,7 @@ class StockEntrada(MethodView):
     def post(self, data):
         usuario = _get_current_user()
         try:
+            stock_movements_total.labels(type="entrada").inc()  
             return StockService.entrada_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
@@ -162,6 +168,7 @@ class StockSalida(MethodView):
     def post(self, data):
         usuario = _get_current_user()
         try:
+            stock_movements_total.labels(type="salida").inc()
             return StockService.salida_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
@@ -174,6 +181,7 @@ class StockAjuste(MethodView):
     def post(self, data):
         usuario = _get_current_user()
         try:
+            stock_movements_total.labels(type="ajuste").inc() 
             return StockService.ajuste_stock(**data, usuario=usuario)
         except ValueError as e:
             abort(400, message=str(e))
@@ -194,7 +202,9 @@ class StockCriticos(MethodView):
     @require_permission('stock:view')
     @blp_stocks.response(200, ProductSchema(many=True))
     def get(self):
-        return StockService.criticos()
+        critical = StockService.criticos()
+        critical_products.set(len(critical)) 
+        return critical
 
 
 @blp_reports.route("/")
