@@ -1,4 +1,5 @@
 import os
+
 os.environ.setdefault("SECRET_KEY", "test-secret")
 os.environ.setdefault("POSTGRES_USER", "postgres")
 os.environ.setdefault("POSTGRES_PASSWORD", "postgres")
