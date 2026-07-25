@@ -52,9 +52,36 @@ def create_app(config_class=Config):
     # Incluido para produccion y para que pruebas pueden acceder a configuracion de cabeceras de HTTP
     @app.after_request
     def add_security_headers(response):
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Strict-Transport-Security'] = (
+            'max-age=31536000; includeSubDomains'
+        )
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-Content-Type-Options'] = 'nosniff'
+
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        response.headers['Permissions-Policy'] = (
+            'camera=(), microphone=(), geolocation=()'
+        )
+
+        response.headers['Cross-Origin-Embedder-Policy'] = (
+            'credentialless'
+        )
+
+        response.headers['Cross-Origin-Opener-Policy'] = (
+            'same-origin'
+        )
+
         return response
 
     return app
@@ -206,7 +233,7 @@ def login():
         }), 200
 
     except Exception as e:
-        login_failures.inc()  
+        login_failures.inc()
         return jsonify({'error': str(e)}), 401
 
 
@@ -254,7 +281,7 @@ def verify_token():
         )
         return jsonify({'valid': True, 'user': payload}), 200
     except jwt.InvalidTokenError:
-        token_invalid.inc()  
+        token_invalid.inc()
         return jsonify({'valid': False}), 401
 
 @app.route('/auth/refresh', methods=['POST'])
@@ -288,7 +315,7 @@ def refresh():
             'session_token': session_token
         }), 200
     except Exception as e:
-        token_invalid.inc() 
+        token_invalid.inc()
         return jsonify({'error': str(e)}), 401
 
 
