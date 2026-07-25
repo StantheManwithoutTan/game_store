@@ -48,7 +48,8 @@ def test_migrations_apply_on_clean_db(postgres_container):
     TestConfig.SQLALCHEMY_DATABASE_URI = postgres_container.get_connection_url()
     app = create_app(TestConfig)
     with app.app_context():
-        upgrade(directory="migrations")
+        migrations_dir = os.path.join(os.path.dirname(__file__), "..", "migrations")
+        upgrade(directory=migrations_dir)
         tables = db.session.execute(
             text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
         ).fetchall()
