@@ -1,6 +1,7 @@
 from flask import request, current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+import marshmallow as ma
 import jwt
 
 from extensions import db
@@ -12,6 +13,7 @@ from decorators import require_permission
 
 from metrics import stock_movements_total, products_total, critical_products
 from models import Product, StockMovement
+
 
 
 blp_games = Blueprint(
@@ -33,7 +35,10 @@ blp_reports = Blueprint(
 blp_audit = Blueprint("audit", "audit", url_prefix="/api/audit")
 blp_users = Blueprint("users", "users", url_prefix="/api/users")
 
-
+class ErrorResponseSchema(ma.Schema):
+    code = ma.fields.Int(metadata={"description": "HTTP Status Code"})
+    message = ma.fields.Str(metadata={"description": "Error description text"})
+    status = ma.fields.Str()
 
 def _get_current_user():
     auth = request.headers.get('Authorization', '')
@@ -87,6 +92,7 @@ class ProductList(MethodView):
 class ProductById(MethodView):
     @require_permission('product:view')
     @blp_products.response(200, ProductSchema)
+    @blp_products.alt_response(404, schema=ErrorResponseSchema)
     def get(self, product_id):
         return ProductService.get_by_id(product_id)
 

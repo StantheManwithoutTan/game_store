@@ -171,6 +171,17 @@ services:
       - "8082:8080"
     privileged: true
 
+  k6:
+    image: grafana/k6:latest
+    environment:
+    - JWT_SECRET=0d5072acbaca9c3405e71105bf7626a0d598391154d7d4dea739ad371742369a
+    volumes:
+      - ../backend/k6:/scripts
+      - ../backend/results:/results
+    command: run /scripts/load-test.js --out json=/results/k6-results.json
+    depends_on:
+      - backend
+
 volumes:
   postgres-data:
   jenkins_home:
