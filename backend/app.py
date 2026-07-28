@@ -60,10 +60,9 @@ def create_app(config_class=Config):
 
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; "
-            "font-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net 'sha256-p+ObFLxIXgmaTA9HdZ4tXsRUW76uEH+R2ZpUk8hESPE='; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https://cdn.jsdelivr.net; "
             "connect-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
