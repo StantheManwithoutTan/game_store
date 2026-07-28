@@ -17,4 +17,4 @@ jobs:
       - run: npx playwright install chromium
       - run: npx playwright test
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_SECRET_ACTUAL: ${{ secrets.JWT_SECRET_ACTUAL }}
