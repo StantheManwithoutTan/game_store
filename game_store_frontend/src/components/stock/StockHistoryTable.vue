@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { formatDateTime } from '../../utils/date'
+import { computed, ref } from 'vue'
+
 
 import {
   getMovementClass,
@@ -8,15 +10,40 @@ import {
 
 import type { StockMovement } from '../../types/stock'
 
-defineProps<{
+const props = defineProps<{
   movements: StockMovement[]
   productNames: Record<number, string>
 }>()
+
+const currentPage = ref(1)
+const PER_PAGE = 20
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(props.movements.length / PER_PAGE))
+)
+
+const startIndex = computed(() =>
+  (currentPage.value - 1) * PER_PAGE
+)
+
+const paginatedMovements = computed(() =>
+  props.movements.slice(startIndex.value, startIndex.value + PER_PAGE)
+)
+
+function prevPage(): void {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+function nextPage(): void {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+
 </script>
 
 <template>
   <div
-      v-if="movements.length === 0"
+      v-if="paginatedMovements.length === 0"
       class="empty-state"
   >
     No existen movimientos para los filtros seleccionados.
@@ -42,7 +69,7 @@ defineProps<{
 
       <tbody>
       <tr
-          v-for="movement in movements"
+          v-for="movement in paginatedMovements"
           :key="movement.id"
       >
         <td>
@@ -81,5 +108,33 @@ defineProps<{
       </tr>
       </tbody>
     </table>
+    <div class="pagination">
+    <p class="pagination-info">
+      Mostrando {{ startIndex + 1 }}–{{ Math.min(startIndex + PER_PAGE, movements.length) }}
+      de {{ movements.length }} movimientos
+    </p>
+
+    <div class="pagination-controls">
+      <button
+        class="btn btn-outline btn-sm"
+        :disabled="currentPage <= 1"
+        @click="prevPage"
+      >
+        Anterior
+      </button>
+
+      <span class="page-indicator">
+        Página {{ currentPage }} de {{ totalPages }}
+      </span>
+
+      <button
+        class="btn btn-outline btn-sm"
+        :disabled="currentPage >= totalPages"
+        @click="nextPage"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
   </div>
 </template>
