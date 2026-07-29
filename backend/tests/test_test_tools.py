@@ -4,15 +4,14 @@ import time
 import jwt
 import pytest
 
-os.environ.setdefault("SECRET_KEY", "test-secret")
+TEST_SECRET = "test-secret-key-for-hs256-at-least-32-bytes"
+
+os.environ.setdefault("SECRET_KEY", TEST_SECRET)
+os.environ.setdefault("ENABLE_TELEMETRY", "false")
 
 from app import create_app
 from config import Config
 from extensions import db
-
-
-TEST_SECRET = "test-secret"
-
 
 def make_token(*roles):
     return jwt.encode(

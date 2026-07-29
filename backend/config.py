@@ -10,6 +10,12 @@ class Config:
             in {'1', 'true', 'yes'}
     )
 
+    #desative que pytest  intentará conectarse a alloy:4317
+    ENABLE_TELEMETRY = (
+            os.environ.get("ENABLE_TELEMETRY", "true").lower()
+            in {"1", "true", "yes"}
+    )
+
     SQLALCHEMY_DATABASE_URI = (
         f"postgresql://{os.environ.get('POSTGRES_USER', 'postgres')}:"
         f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}@"
