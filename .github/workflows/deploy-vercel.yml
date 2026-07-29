@@ -1,0 +1,71 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+# Evita que dos despliegues del mismo branch corran a la vez
+concurrency:
+  group: vercel-deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: game_store_frontend
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # main -> production ; develop (o cualquier otro branch) -> preview/staging
+      - name: Pull Vercel environment info
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+      - name: Build project artifacts
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          else
+            url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Opcional: fija un dominio fijo de staging para que develop siempre
+      # apunte a la misma URL en vez de una URL distinta en cada push.
+      - name: Alias staging deployment
+        if: github.ref_name == 'develop'
+        run: |
+          vercel alias set ${{ steps.deploy.outputs.url }} staging-game-store.vercel.app \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Show deployment URL
+        run: echo "Deployed to ${{ steps.deploy.outputs.url }}"
