@@ -19,6 +19,8 @@ services:
     environment:
       FLASK_ENV: development
       FLASK_APP: app.py
+      #para activar el endpoint... 
+      ENABLE_TEST_TOOLS: "true"
 
   frontend:
     build:
