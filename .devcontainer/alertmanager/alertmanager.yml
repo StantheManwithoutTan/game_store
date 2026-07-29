@@ -1,0 +1,14 @@
+route:
+  group_by: ["alertname"]
+  group_wait: 1s
+  group_interval: 1m
+  repeat_interval: 5m
+  receiver: "default"
+
+receivers:
+  - name: "default"
+    # Sin Slack/email → las alertas solo aparecen en Grafana
+    # Para probar: webhook dummy
+    webhook_configs:
+      - url: "https://webhook.site/27ddca60-ff86-48a6-94fb-b677b71eca3d"
+

@@ -1,0 +1,36 @@
+groups:
+  - name: game-store-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(flask_http_request_duration_seconds_count{status=~"5.."}[5m]))
+          /
+          sum(rate(flask_http_request_duration_seconds_count[5m]))
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error rate > 5% in last 5 minutes"
+
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum(rate(flask_http_request_duration_seconds_bucket[5m])) by (le))
+          > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency > 1s"
+
+      - alert: HighAuthFailures
+        # Cambiado a 'increase' en una ventana de 1 minuto para pruebas rápidas
+        # Cambiado 'endpoint' por 'path'
+        expr: |
+          increase(flask_http_request_duration_seconds_count{path="/auth/login", status="401"}[1m]) > 5
+        for: 0m  # Se activa inmediatamente al superar 5 fallos
+        labels:
+          severity: warning
+        annotations:
+          summary: "Auth failures > 5 in 1 minute"
+          description: "Detectados {{ $value }} fallos de autenticación en la ruta /auth/login"

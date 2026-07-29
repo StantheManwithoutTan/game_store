@@ -1,0 +1,22 @@
+# Exclude environment files
+.env
+.env.*
+
+# Exclude IntelliJ IDEA project files
+*.iml
+.idea/
+
+# Exclude Python compiled files and cache directories
+*.pyc
+__pycache__/
+
+# Exclude Keycloak realm exports
+keycloak/realm-export.json
+
+backend/migrations/
+backend/results/
+backend/results/*
+
+.coverage
+backend/reports/
+security/

@@ -209,18 +209,18 @@ git branch -d feature/setup
   - Activar branch protection en `main` y `develop` (requiere PR + review)
   - Escribir README inicial con descripción, tecnologías y pasos para levantar el proyecto
 
-- [ ] **Levantar PostgreSQL con Docker Compose**
+- [X] **Levantar PostgreSQL con Docker Compose**
   - Crear `docker-compose.yml` con servicio `postgres:15`
   - Agregar volumen persistente y healthcheck
   - Gestionar credenciales en archivo `.env` — nunca hardcoded
 
-- [ ] **Configurar Flyway / Liquibase y crear las 4 migraciones base**
-  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at)
+- [O] **Configurar Alembic + SqlAlchemy + flask-smorest y crear las 4 migraciones base**
+  - `V1`: tabla `productos` (id, nombre, sku, descripcion, categoria, precio, cantidad, stock_min, estado, created_at) X
   - `V2`: tabla `movimientos_stock` (id, producto_id, tipo, cantidad_anterior, cantidad_nueva, usuario, observaciones, fecha)
   - `V3`: tablas `categorias` y `usuarios`
   - `V4`: tabla `audit_log`
 
-- [ ] **Realizar primer commit siguiendo Conventional Commits**
+- [X] **Realizar primer commit siguiendo Conventional Commits**
   - Ejemplo: `feat: initial project setup with docker and migrations`
 
 ---
@@ -229,24 +229,24 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/flask-crud`
 
-- [ ] **Estructurar el proyecto Flask y configurar SQLAlchemy**
+- [x] **Estructurar el proyecto Flask y configurar SQLAlchemy**
   - Crear carpetas: `app/`, `models/`, `routes/`, `services/`, `tests/`
   - Configurar `create_app()` con factory pattern
   - Integrar Flask-Migrate / Alembic con SQLAlchemy
 
-- [ ] **Crear modelo `Product` y `ProductService` con validaciones**
+- [x] **Crear modelo `Product` y `ProductService` con validaciones**
   - Modelo con todos los campos del alcance funcional
   - Servicio con métodos: `create`, `get_all`, `get_by_id`, `update`, `delete`
   - Validaciones: SKU único, precio > 0, stock >= 0, nombre obligatorio
 
-- [ ] **Implementar los 5 endpoints REST del CRUD de Producto**
+- [x] **Implementar los 5 endpoints REST del CRUD de Producto**
   - `POST /api/products`
   - `GET /api/products` — paginación (`?page=&per_page=`) y búsqueda (`?search=&categoria=&estado=`)
   - `GET /api/products/<id>`
   - `PUT /api/products/<id>`
   - `DELETE /api/products/<id>`
 
-- [ ] **Abrir PR #1 hacia `develop` con descripción de los cambios**
+- [x] **Abrir PR #1 hacia `develop` con descripción de los cambios**
 
 ---
 
@@ -254,16 +254,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/keycloak-auth`
 
-- [ ] **Agregar Keycloak al Docker Compose y configurar el realm**
+- [X] **Agregar Keycloak al Docker Compose y configurar el realm**
   - Servicio Keycloak con imagen `quay.io/keycloak/keycloak`
   - Crear realm `inventory-realm` y client `inventory-api` (Authorization Code + PKCE)
   - Crear todos los scopes: `product:view`, `product:manage`, `stock:view`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
 
-- [ ] **Crear usuarios y asignar permisos en Keycloak**
-  - Usuario `admin`: `product:manage`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
-  - Usuario `empleado`: `product:view`, `stock:view`, `report:view`
+- [X] **Crear usuarios y asignar permisos en Keycloak**
+  - Usuario `store_admin`: `product:manage`, `stock:manage`, `report:view`, `user:manage`, `audit:view`
+  - Usuario `store_vendor`: `product:view`, `stock:view`, `report:view`
+  - Usuario `store_user`: `product:view`
 
-- [ ] **Integrar validación JWT en Flask y proteger endpoints**
+- [X] **Integrar validación JWT en Flask y proteger endpoints**
   - Instalar `python-keycloak` o `authlib`
   - Crear decorador `@require_permission('scope')` para cada endpoint
   - Proteger `GET /api/products` con `product:view` y `POST/PUT/DELETE` con `product:manage`
@@ -275,17 +276,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/openapi-audit-tests`
 
-- [ ] **Configurar Swagger UI con `flask-openapi3` o `flasgger`**
+- [x] **Configurar Swagger UI con `flask-openapi3` o `flasgger`**
   - Exponer `/api/docs` con Swagger UI interactivo
   - Documentar todos los endpoints: esquemas de request, response y códigos de error
   - Verificar que `/api/openapi.json` se genera sin errores
 
-- [ ] **Implementar auditoría tipo Envers con SQLAlchemy-Continuum**
+- [x] **Implementar auditoría tipo Envers con SQLAlchemy-Continuum**
   - Alternativa: triggers PostgreSQL que escriban en `audit_log`
   - Verificar que al editar un producto queda registrada la versión anterior
   - Capturar evidencia (screenshot de la tabla de auditoría)
 
-- [ ] **Escribir 15+ unit tests con pytest y alcanzar 60% de cobertura**
+- [x] **Escribir 15+ unit tests con pytest y alcanzar 60% de cobertura**
   - ~5 tests para `ProductService.create` (casos válidos e inválidos)
   - ~5 tests para validaciones de negocio (SKU duplicado, precio negativo, etc.)
   - ~5 tests para `update` y `delete`
@@ -297,21 +298,21 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/integration-tests-docker`
 
-- [ ] **Configurar Testcontainers y escribir 5 integration tests**
+- [X] **Configurar Testcontainers y escribir 5 integration tests**
   - `pip install testcontainers`
   - Fixture pytest que levanta PostgreSQL real con Testcontainers
   - Tests: crear, editar, eliminar producto en BD real; paginación; búsqueda y filtros
 
-- [ ] **Escribir 10 escenarios de API testing**
+- [X] **Escribir 10 escenarios de API testing**
   - `POST` válido → 201; `POST` inválido → 400/422
   - `GET` sin token → 401; con token sin permiso → 403
   - Validación de contratos: respuesta coincide con el schema OpenAPI
 
-- [ ] **Dockerizar Flask y actualizar Docker Compose**
+- [X] **Dockerizar Flask y actualizar Docker Compose**
   - Crear `Dockerfile` para Flask (multi-stage build recomendado)
   - Actualizar `docker-compose.yml` con servicios: `flask-app`, `postgres`, `keycloak`
 
-- [ ] **Abrir PR #2 con los tests y la dockerización**
+- [X] **Abrir PR #2 con los tests y la dockerización**
 
 ---
 
@@ -319,15 +320,15 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/cicd-grafana`
 
-- [ ] **Crear pipeline GitHub Actions con build y tests automáticos**
+- [X] **Crear pipeline GitHub Actions con build y tests automáticos**
   - Archivo `.github/workflows/ci.yml`
   - Steps: checkout → instalar dependencias → unit tests → integration tests → publicar reporte de cobertura
 
-- [ ] **Crear pipeline Jenkins funcional**
+- [X] **Crear pipeline Jenkins funcional**
   - `Jenkinsfile` con stages: Checkout, Build, Unit Tests, Integration Tests
   - Verificar que los stages se visualizan en Blue Ocean o Stage View
 
-- [ ] **Configurar Grafana con primer dashboard operativo**
+- [X] **Configurar Grafana con primer dashboard operativo**
   - Agregar Prometheus y Grafana al `docker-compose.yml`
   - Instalar `prometheus-flask-exporter` para exponer métricas de la app
   - Crear dashboard básico en Grafana: request rate y latencia promedio
@@ -338,24 +339,24 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/vue-frontend-playwright`
 
-- [ ] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
+- [x] **Crear proyecto Vue 3 con Vite y configurar routing + auth**
   - `npm create vue@latest` (Vue 3 + Vue Router + Pinia)
   - Instalar `axios` y Keycloak JS adapter
   - Configurar rutas: `/login`, `/dashboard`, `/productos`, `/stock`
   - Implementar login OAuth2 que redirige a Keycloak
 
-- [ ] **Implementar UI completa del CRUD de Producto**
+- [x] **Implementar UI completa del CRUD de Producto**
   - Componente `ProductList`: tabla, paginación y búsqueda
   - Componente `ProductForm`: crear y editar
   - Eliminar producto con modal de confirmación
   - Dockerizar Vue (nginx + build) y agregarlo al `docker-compose.yml`
 
-- [ ] **Automatizar login y CRUD de Producto con Playwright**
+- [x] **Automatizar login y CRUD de Producto con Playwright**
   - `npm install @playwright/test && npx playwright install`
   - Test: flujo de login completo con Keycloak
   - Tests: crear, ver, editar y eliminar un producto desde la UI
 
-- [ ] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
+- [x] **Verificar que el repositorio tiene 15+ commits con Conventional Commits y 2+ PRs cerrados**
 
 ---
 
@@ -369,17 +370,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/stock-control`
 
-- [ ] **Implementar módulo de Control de Stock en Flask**
+- [X] **Implementar módulo de Control de Stock en Flask**
   - `StockService`: `entrada_stock`, `salida_stock`, `ajuste_stock`
   - Validar que salida no deje stock negativo
   - Lógica de alerta: si `cantidad <= stock_min`, marcar producto como crítico
 
-- [ ] **Exponer endpoints de stock y protegerlos con permisos**
+- [X] **Exponer endpoints de stock y protegerlos con permisos**
   - `POST /api/stock/entrada` y `POST /api/stock/salida` → requieren `stock:manage`
   - `GET /api/stock/historial` (filtros por fecha y producto) → `stock:view`
   - `GET /api/stock/criticos` → `stock:view`
 
-- [ ] **Agregar tests unitarios y de integración para Stock**
+- [X] **Agregar tests unitarios y de integración para Stock**
   - Unit tests: `StockService` (entrada, salida, ajuste, alerta de stock mínimo)
   - Integration tests con Testcontainers: endpoints de stock con datos reales
 
@@ -389,12 +390,12 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/granular-permissions`
 
-- [ ] **Implementar y verificar los permisos restantes de la matriz**
+- [X] **Implementar y verificar los permisos restantes de la matriz**
   - Proteger `/api/reports` con `report:view`, `/api/audit` con `audit:view`, `/api/users` con `user:manage`
   - Verificar que ningún endpoint valida solo el rol — siempre el permiso específico
   - Tests: token de `empleado` en ruta de admin → 403; token expirado → 401
 
-- [ ] **Agregar hardening de seguridad a la aplicación**
+- [X] **Agregar hardening de seguridad a la aplicación**
   - Cabeceras HTTP: `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`
   - Rate limiting con `flask-limiter` para prevenir abuso de endpoints
   - Validar que CORS rechaza peticiones de orígenes no permitidos
@@ -474,17 +475,17 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/opentelemetry-loki-tempo`
 
-- [ ] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
+- [X] **Instrumentar Flask con OpenTelemetry y configurar Alloy**
   - `pip install opentelemetry-sdk opentelemetry-instrumentation-flask opentelemetry-exporter-otlp`
   - Configurar `TracerProvider` con exportador OTLP hacia Alloy (puertos 4317/4318)
   - Instrumentar queries SQLAlchemy para que aparezcan como spans en las trazas
 
-- [ ] **Agregar Alloy, Tempo y Loki al Docker Compose**
+- [X] **Agregar Alloy, Tempo y Loki al Docker Compose**
   - Verificar que las trazas llegan a Tempo y son visibles en Grafana
   - Configurar logging estructurado en Flask: emitir `traceId`, `spanId`, `correlationId`, usuario y endpoint
   - Enviar logs a Loki vía Alloy y verificar búsqueda en Grafana
 
-- [ ] **Configurar reglas de Alertmanager**
+- [X] **Configurar reglas de Alertmanager**
   - Alerta: error rate > 5% en 5 minutos
   - Alerta: latencia p95 > 1 segundo
   - Alerta: fallos de autenticación > 10 en 1 minuto
@@ -495,18 +496,18 @@ git branch -d feature/setup
 
 **Rama sugerida:** `feature/grafana-dashboards`
 
-- [ ] **Crear los 4 dashboards requeridos en Grafana**
+- [X] **Crear los 4 dashboards requeridos en Grafana**
   - **Infraestructura**: CPU, memoria, disco y red del host Docker
   - **Aplicación**: request rate, latencia p50/p95/p99, error rate
   - **Negocio**: total productos, movimientos de stock por hora, productos críticos
   - **Seguridad**: intentos de login fallidos, tokens inválidos, accesos 403
 
-- [ ] **Configurar provisioning y verificar que todo levanta solo**
+- [X] **Configurar provisioning y verificar que todo levanta solo**
   - Exportar dashboards como JSON en `grafana/dashboards/` del repo
   - Configurar provisioning de Grafana para carga automática al hacer `docker-compose up`
   - Agregar panel de trazas distribuidas: ver request completo con spans de API y BD
 
-- [ ] **Actualizar README con capturas de los dashboards**
+- [X] **Actualizar README con capturas de los dashboards**
   - Verificar que `docker-compose up` levanta todo el stack sin pasos manuales
 
 ---
