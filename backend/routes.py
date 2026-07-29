@@ -6,6 +6,8 @@ import jwt
 
 from extensions import db
 from models import Game
+#agregue esto para marcar el tiempo del token
+from datetime import datetime, timedelta, timezone
 from schemas import GameSchema, ProductSchema, StockMovementSchema, StockEntradaSchema, StockSalidaSchema, StockAjusteSchema
 from services.product_service import ProductService
 from services.stock_service import StockService
@@ -35,10 +37,43 @@ blp_reports = Blueprint(
 blp_audit = Blueprint("audit", "audit", url_prefix="/api/audit")
 blp_users = Blueprint("users", "users", url_prefix="/api/users")
 
+# modelo para token
+blp_test_tools = Blueprint(
+    "test_tools",
+    "test_tools",
+    url_prefix="/api/test-tools",
+    description="Development test tools"
+)
+
 class ErrorResponseSchema(ma.Schema):
     code = ma.fields.Int(metadata={"description": "HTTP Status Code"})
     message = ma.fields.Str(metadata={"description": "Error description text"})
     status = ma.fields.Str()
+
+# para darle los permiso al token para las pruebas
+ALLOWED_TEST_ROLES = {
+    "game:view",
+    "game:manage",
+    "product:view",
+    "product:manage",
+    "stock:view",
+    "stock:manage",
+    "report:view",
+    "audit:view",
+    "user:manage",
+}
+
+class TestTokenRequestSchema(ma.Schema):
+    roles = ma.fields.List(
+        ma.fields.String(),
+        required=True,
+        validate=ma.validate.Length(min=1)
+    )
+
+    expires_minutes = ma.fields.Integer(
+        load_default=15,
+        validate=ma.validate.Range(min=1, max=60)
+    )
 
 def _get_current_user():
     auth = request.headers.get('Authorization', '')
@@ -258,6 +293,52 @@ class UserList(MethodView):
             for u in users
         ]
 
+# TEST TOKEN la ruta
+@blp_test_tools.route("/token")
+class TestToken(MethodView):
+
+    @require_permission("user:manage")
+    @blp_test_tools.arguments(TestTokenRequestSchema)
+    @blp_test_tools.response(201)
+    def post(self, data):
+        if not current_app.config.get("ENABLE_TEST_TOOLS"):
+            abort(404, message="Test tools are disabled")
+
+        roles = sorted(set(data["roles"]))
+        invalid_roles = sorted(set(roles) - ALLOWED_TEST_ROLES)
+
+        if invalid_roles:
+            abort(
+                400,
+                message=f"Invalid roles: {', '.join(invalid_roles)}"
+            )
+
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(
+            minutes=data["expires_minutes"]
+        )
+
+        token = jwt.encode(
+            {
+                "sub": "test-user",
+                "email": "test-tools@game-store.local",
+                "name": "Test Tools User",
+                "roles": roles,
+                "iat": now,
+                "exp": expires_at,
+                "token_use": "testing",
+            },
+            current_app.config["SECRET_KEY"],
+            algorithm="HS256"
+        )
+
+        return {
+            "token": token,
+            "token_type": "Bearer",
+            "roles": roles,
+            "expires_at": expires_at.isoformat(),
+            "expires_in": data["expires_minutes"] * 60,
+        }
 
 def register_blueprints(api):
     api.register_blueprint(blp_games)
@@ -266,5 +347,7 @@ def register_blueprints(api):
     api.register_blueprint(blp_reports)
     api.register_blueprint(blp_audit)
     api.register_blueprint(blp_users)
+    #agregue esto para test token... siguiendo la logica
+    api.register_blueprint(blp_test_tools)
     # api.register_blueprint(blp_consoles)
     # api.register_blueprint(blp_controllers)
