@@ -2,6 +2,9 @@
 const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
 const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080'
 
+console.log("APP_URL:", import.meta.env.VITE_APP_URL)
+console.log("KEYCLOAK_URL:", import.meta.env.VITE_KEYCLOAK_URL)
+
 const keycloakLoginUrl =
     `${keycloakUrl}/realms/game-store/protocol/openid-connect/auth` +
     `?client_id=game-store-client` +
