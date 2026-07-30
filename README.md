@@ -835,6 +835,34 @@ flowchart TD
     I[cAdvisor] --> F
 ```
 
+backend/telemetry.py	
+- Configura OTel + logging JSON + correlation IDs
+
+backend/metrics.py	
+- Define 3 métricas de negocio + 3 de seguridad
+
+.devcontainer/alloy/config.alloy	
+- Recibe trazas OTLP, captura logs Docker, filtra backend, envía a Tempo y Loki
+
+.devcontainer/tempo/tempo.yaml	
+- Recibe trazas vía OTLP, genera service-graphs/span-metrics, almacena local
+
+.devcontainer/prometheus.yml	
+- Scrapea backend:5000/metrics y cadvisor:8080, evalúa reglas de alerta
+
+.devcontainer/alertmanager/rules.yml	
+- 3 reglas: error rate, latencia P95, fallos de auth
+
+.devcontainer/alertmanager/alertmanager.yml	
+- Configura destino de alertas (slack/webhook/email)
+
+grafana/datasources/datasources.yaml	
+- Registra Prometheus, Tempo y Loki como datasources en Grafana
+
+grafana/dashboards/	
+- Dashboards pre-provisionados (aplicación, infra, negocio, seguridad)
+
+
 ### Señales
 
 | Señal | Herramienta | Ejemplos |
@@ -895,6 +923,41 @@ Invoke-RestMethod `
   -Body $body `
   -ContentType "application/json"
 ```
+
+# Probando alertas con AlertManager:
+
+# Para probar alerta de high auth failure:
+1..15 | ForEach-Object {
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:5000/auth/login" -Method Post -Body '{"code":"invalido"}' -ContentType "application/json" -UseBasicParsing
+        Write-Host "Success Status: $($response.StatusCode)" -ForegroundColor Green
+    } catch {
+        # Catch and print the exact numerical status code
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        Write-Host "Error Status Code: $statusCode" -ForegroundColor Yellow
+    }
+}
+
+
+
+
+# Para probar todas las alertas: 
+$body = '[
+    {
+        "labels": {
+            "alertname": "TestAlert",
+            "severity": "critical",
+            "job": "flask"
+        },
+        "annotations": {
+            "summary": "Simulando alerta directa sin Prometheus"
+        }
+    }
+]'
+
+Invoke-RestMethod -Uri "http://localhost:9093/api/v2/alerts" -Method Post -Body $body -ContentType "application/json"
+
+
 
 ---
 
