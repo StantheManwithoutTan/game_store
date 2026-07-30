@@ -6,9 +6,6 @@ on:
       - main
       - develop
 
-permissions:
-  contents: read
-
 # Evita que dos despliegues del mismo branch corran a la vez
 concurrency:
   group: vercel-deploy-${{ github.ref_name }}
@@ -30,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
@@ -47,8 +44,12 @@ jobs:
       - name: Build project artifacts
         run: |
           rm -rf node_modules/.cache
-          npm ci
-          npm run build
+          
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          fi
 
       - name: Deploy to Vercel
         id: deploy
