@@ -5,6 +5,7 @@ import LoginCallback from '../views/LoginCallback.vue'
 import DashboardView from '../views/DashboardView.vue'
 import ProductsView from '../views/ProductsView.vue'
 import StockView from '../views/StockView.vue'
+import TestTokenView from '../views/TestTokenView.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -32,6 +33,10 @@ const router = createRouter({
         {
             path: '/stock',
             component: StockView,
+        },
+        {
+            path: '/herramientas/token',
+            component: TestTokenView,
         },
     ],
 })
