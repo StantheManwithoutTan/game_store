@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # Importar las configuraciones, extensiones y rutas
 from flask_cors import CORS
 from config import Config
+
 from extensions import db, migrate, api, limiter
 from routes import register_blueprints
 from prometheus_flask_exporter import PrometheusMetrics
@@ -18,6 +19,8 @@ from urllib.parse import quote
 from telemetry import setup_telemetry, setup_logging
 
 from metrics import login_failures, token_invalid
+
+from extensions import db, migrate, api, limiter, marshmallow_plugin
 
 load_dotenv()
 
@@ -44,10 +47,26 @@ def create_app(config_class=Config):
     # Crea instancias de la base de datos y de los endpoints de api
     db.init_app(app)
     migrate.init_app(app, db)
-    api.init_app(app)
+
+    # esto para quitar el warning Eso generará nombres claros como
+    #Game
+    #GameList
+    #GameUpdate
+    #Product
+    #ProductList
+    #ProductUpdate
+    api.init_app(
+        app,
+        spec_kwargs={
+            "marshmallow_plugin": marshmallow_plugin
+        }
+    )
     limiter.init_app(app)
 
-    setup_telemetry(app)
+    #desativa el warning el las pruebas pytest no intentará conectarse a alloy
+    if app.config.get("ENABLE_TELEMETRY", True):
+        setup_telemetry(app)
+
     setup_logging(app)
 
     metrics = PrometheusMetrics(app)
