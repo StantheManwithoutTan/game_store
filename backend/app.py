@@ -162,8 +162,9 @@ def openid_connect():
 
         return redirect(url_for('home'))
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 401
+    except Exception:
+        app.logger.exception("Error en OpenID Connect")
+        return jsonify({'error': 'Authentication failed'}), 401
 
 
 @app.route('/auth/login', methods=['POST'])
@@ -209,9 +210,10 @@ def login():
             'refresh_token': token.get('refresh_token')
         }), 200
 
-    except Exception as e:
-        login_failures.inc()  
-        return jsonify({'error': str(e)}), 401
+    except Exception:
+        login_failures.inc()
+        app.logger.exception("Error durante el login")
+        return jsonify({'error': 'Authentication failed'}), 401
 
 
 @app.route('/auth/logout', methods=['POST'])
@@ -258,7 +260,7 @@ def verify_token():
         )
         return jsonify({'valid': True, 'user': payload}), 200
     except jwt.InvalidTokenError:
-        token_invalid.inc()  
+        token_invalid.inc()
         return jsonify({'valid': False}), 401
 
 @app.route('/auth/refresh', methods=['POST'])
@@ -291,11 +293,12 @@ def refresh():
             'access_token': new_token['access_token'],
             'session_token': session_token
         }), 200
-    except Exception as e:
-        token_invalid.inc() 
-        return jsonify({'error': str(e)}), 401
+    except Exception:
+        token_invalid.inc()
+        app.logger.exception("Error al refrescar el token")
+        return jsonify({'error': 'Token refresh failed'}), 401
 
 
-@app.route('/debug')
-def debug():
-    return jsonify(dict(session))
+#@app.route('/debug')
+#def debug():
+#    return jsonify(dict(session))
