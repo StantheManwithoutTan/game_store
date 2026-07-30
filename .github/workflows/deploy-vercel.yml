@@ -47,7 +47,8 @@ jobs:
       - name: Build project artifacts
         run: |
           rm -rf node_modules/.cache
-          npm run build 2>/dev/null || vite build  # si vue-tsc falla, solo vite build
+          npm ci
+          npm run build
 
       - name: Deploy to Vercel
         id: deploy
