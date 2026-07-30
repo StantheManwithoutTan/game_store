@@ -30,7 +30,6 @@ env/
 **/site-packages/
 
 .git
-.github
 .venv
 venv
 __pycache__

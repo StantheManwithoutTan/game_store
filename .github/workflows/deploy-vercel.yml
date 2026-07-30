@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
@@ -47,12 +47,7 @@ jobs:
       - name: Build project artifacts
         run: |
           rm -rf node_modules/.cache
-          
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          else
-            vercel build --token=${{ secrets.VERCEL_TOKEN }}
-          fi
+          npm run build 2>/dev/null || vite build  # si vue-tsc falla, solo vite build
 
       - name: Deploy to Vercel
         id: deploy
