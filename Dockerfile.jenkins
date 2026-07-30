@@ -3,7 +3,15 @@ FROM jenkins/jenkins:lts-jdk21
 USER root
 
 RUN apt-get update && \
-    apt-get install -y docker.io && \
-    apt-get clean
+    apt-get install -y --no-install-recommends ca-certificates curl docker.io unzip && \
+    curl --proto '=https' --tlsv1.2 --max-redirs 0 \
+      --output sonar-scanner-cli-7.0.2.4839-linux-x64.zip \
+      https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-7.0.2.4839-linux-x64.zip && \
+    unzip sonar-scanner-cli-7.0.2.4839-linux-x64.zip -d /opt && \
+    ln -s /opt/sonar-scanner-7.0.2.4839-linux-x64/bin/sonar-scanner \
+      /usr/local/bin/sonar-scanner && \
+    rm sonar-scanner-cli-7.0.2.4839-linux-x64.zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 USER jenkins
