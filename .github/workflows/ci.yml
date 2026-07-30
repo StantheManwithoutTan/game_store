@@ -107,7 +107,7 @@ jobs:
       - run: pytest tests/test_product_api.py tests/test_permissions.py tests/test_security.py -v --cov
 
   e2e-tests:
-    needs: [api-tests, deploy-vercel-preview]
+    needs: api-tests
     runs-on: ubuntu-latest
     defaults:
       run: { working-directory: game_store_frontend }
@@ -117,7 +117,22 @@ jobs:
         with: { node-version: "22" }
       - run: npm ci
       - run: npx playwright install chromium
-      # Backend debe estar corriendo para las E2E
+      - name: Create .env for CI
+        run: |
+          cat <<EOF > ../.devcontainer/.env
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=postgres
+          POSTGRES_DB=game_store
+          DATABASE_HOST=db
+          DATABASE_PORT=5432
+          SECRET_KEY=ci-e2e-test-secret
+          FRONTEND_URL=http://localhost:5173
+          KEYCLOAK_SERVER_URL=http://keycloak:8080
+          KEYCLOAK_SERVER_URL_EXTERNAL=http://localhost:8080
+          KEYCLOAK_CLIENT_ID=game-store-client
+          KEYCLOAK_REALM=game-store
+          KEYCLOAK_CLIENT_SECRET=
+          EOF
       - run: docker compose -f ../.devcontainer/docker-compose.yml up -d db backend
       - run: |
           for i in {1..15}; do
