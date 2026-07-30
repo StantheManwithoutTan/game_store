@@ -15,6 +15,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Pre-pull testcontainers image
+        run: docker pull postgres:15
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 
