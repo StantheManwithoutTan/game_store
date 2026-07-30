@@ -1,10 +1,16 @@
 <script setup lang="ts">
+const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
+const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080'
+
+console.log("APP_URL:", import.meta.env.VITE_APP_URL)
+console.log("KEYCLOAK_URL:", import.meta.env.VITE_KEYCLOAK_URL)
+
 const keycloakLoginUrl =
-    'http://localhost:8080/realms/game-store/protocol/openid-connect/auth' +
-    '?client_id=game-store-client' +
-    '&redirect_uri=http://localhost:5173/login/callback' +
-    '&response_type=code' +
-    '&scope=openid'
+    `${keycloakUrl}/realms/game-store/protocol/openid-connect/auth` +
+    `?client_id=game-store-client` +
+    `&redirect_uri=${encodeURIComponent(appUrl + '/login/callback')}` +
+    `&response_type=code` +
+    `&scope=openid`
 
 function login() {
   window.location.href = keycloakLoginUrl

@@ -63,6 +63,9 @@ services:
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_PROXY: edge                    # ← confía en X-Forwarded-Proto (HTTPS)
+      KC_HOSTNAME_STRICT: "false"       # ← permite URLs dinámicas como trycloudflare.com
+      KC_HOSTNAME_STRICT_HTTPS: "false" # ← no exige HTTPS internamente
     command:
       - start-dev
       - --import-realm
@@ -170,6 +173,17 @@ services:
     ports:
       - "8082:8080"
     privileged: true
+
+  k6:
+    image: grafana/k6:latest
+    environment:
+    - JWT_SECRET=0d5072acbaca9c3405e71105bf7626a0d598391154d7d4dea739ad371742369a
+    volumes:
+      - ../backend/k6:/scripts
+      - ../backend/results:/results
+    command: run /scripts/load-test.js --out json=/results/k6-results.json
+    depends_on:
+      - backend
 
 volumes:
   postgres-data:

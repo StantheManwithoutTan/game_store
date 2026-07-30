@@ -22,5 +22,7 @@ class Config:
     RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '10000/hour')
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
     RATELIMIT_STRATEGY = 'fixed-window'
+    # Quita el # de aqui si se quiere probar el stress test de productos ( dentro el contenedor de k6)
+    # RATELIMIT_ENABLED = False
 
     

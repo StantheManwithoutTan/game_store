@@ -56,9 +56,35 @@ def create_app(config_class=Config):
     # Incluido para produccion y para que pruebas pueden acceder a configuracion de cabeceras de HTTP
     @app.after_request
     def add_security_headers(response):
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Strict-Transport-Security'] = (
+            'max-age=31536000; includeSubDomains'
+        )
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-Content-Type-Options'] = 'nosniff'
+
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net 'sha256-p+ObFLxIXgmaTA9HdZ4tXsRUW76uEH+R2ZpUk8hESPE='; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https://cdn.jsdelivr.net; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        response.headers['Permissions-Policy'] = (
+            'camera=(), microphone=(), geolocation=()'
+        )
+
+        response.headers['Cross-Origin-Embedder-Policy'] = (
+            'credentialless'
+        )
+
+        response.headers['Cross-Origin-Opener-Policy'] = (
+            'same-origin'
+        )
+
         return response
 
     return app
@@ -90,7 +116,6 @@ def extract_roles(access_payload):
     ).get('roles', [])
 
     return list(set(realm_roles + client_roles))
-
 
 
 @app.route('/')
@@ -165,7 +190,6 @@ def openid_connect():
         app.logger.exception("Error en OpenID Connect")
         return jsonify({'error': 'Authentication failed'}), 401
 
-
 @app.route('/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -176,7 +200,7 @@ def login():
         token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
-            redirect_uri="http://localhost:5173/login/callback"
+            redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:5173')}/login/callback"
         )
 
         id_token = keycloak_openid.decode_token(
@@ -204,7 +228,10 @@ def login():
             'access_token': access_token,
             'id_token': token['id_token'],
             'session_token': session_token,
-            'user': id_token,
+            'user': {
+                'name': id_token.get('name'),
+                'email': id_token.get('email'),
+            },
             'refresh_token': token.get('refresh_token')
         }), 200
 
