@@ -6,6 +6,7 @@ import DashboardView from '../views/DashboardView.vue'
 import ProductsView from '../views/ProductsView.vue'
 import StockView from '../views/StockView.vue'
 import TestTokenView from '../views/TestTokenView.vue'
+import UsersView from '../views/UsersView.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -37,6 +38,10 @@ const router = createRouter({
         {
             path: '/herramientas/token',
             component: TestTokenView,
+        },
+        {
+            path: '/usuarios',
+            component: UsersView,
         },
     ],
 })

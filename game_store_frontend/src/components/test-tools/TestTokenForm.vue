@@ -6,7 +6,6 @@ import type { TestTokenRequest } from '../../types/testTools'
 interface RoleOption {
   value: string
   label: string
-  description: string
 }
 
 defineProps<{
@@ -18,46 +17,14 @@ const emit = defineEmits<{
 }>()
 
 const roleOptions: RoleOption[] = [
-  {
-    value: 'product:view',
-    label: 'Ver productos',
-    description: 'Consultar el catálogo.',
-  },
-  {
-    value: 'product:manage',
-    label: 'Gestionar productos',
-    description: 'Crear, editar y eliminar productos.',
-  },
-  {
-    value: 'stock:view',
-    label: 'Ver stock',
-    description: 'Consultar existencias e historial.',
-  },
-  {
-    value: 'stock:manage',
-    label: 'Gestionar stock',
-    description: 'Registrar entradas, salidas y ajustes.',
-  },
-  {
-    value: 'game:view',
-    label: 'Ver juegos',
-    description: 'Consultar los juegos.',
-  },
-  {
-    value: 'game:manage',
-    label: 'Gestionar juegos',
-    description: 'Modificar los juegos.',
-  },
-  {
-    value: 'report:view',
-    label: 'Ver reportes',
-    description: 'Consultar los reportes.',
-  },
-  {
-    value: 'audit:view',
-    label: 'Ver auditoría',
-    description: 'Consultar el registro de auditoría.',
-  },
+  { value: 'product:view', label: 'Ver productos' },
+  { value: 'product:manage', label: 'Gestionar productos' },
+  { value: 'stock:view', label: 'Ver stock' },
+  { value: 'stock:manage', label: 'Gestionar stock' },
+  { value: 'game:view', label: 'Ver juegos' },
+  { value: 'game:manage', label: 'Gestionar juegos' },
+  { value: 'report:view', label: 'Ver reportes' },
+  { value: 'audit:view', label: 'Ver auditoría' },
 ]
 
 const selectedRoles = ref<string[]>([
@@ -80,15 +47,12 @@ function submitForm(): void {
       class="panel token-form"
       @submit.prevent="submitForm"
   >
-    <div class="panel-header">
-      <div>
-        <p class="panel-label">Paso 1</p>
-        <h2>Configurar token</h2>
-      </div>
-    </div>
+    <h2>Permisos</h2>
 
     <fieldset class="role-options">
-      <legend>Permisos incluidos</legend>
+      <legend class="sr-only">
+        Selecciona los permisos
+      </legend>
 
       <label
           v-for="role in roleOptions"
@@ -101,11 +65,7 @@ function submitForm(): void {
             :value="role.value"
         >
 
-        <span>
-          <strong>{{ role.label }}</strong>
-          <small>{{ role.description }}</small>
-          <code>{{ role.value }}</code>
-        </span>
+        <span>{{ role.label }}</span>
       </label>
     </fieldset>
 

@@ -16,6 +16,8 @@ from decorators import require_permission
 from metrics import stock_movements_total, products_total, critical_products
 from models import Product, StockMovement
 
+from services.keycloak_admin_service import KeycloakAdminService
+
 
 
 blp_games = Blueprint(
@@ -276,22 +278,13 @@ class AuditList(MethodView):
         ]
 
 
-@blp_users.route("/")
+@blp_users.route("/", strict_slashes=False)
 class UserList(MethodView):
-    @require_permission('user:manage')
+
+    @require_permission("user:manage")
     @blp_users.response(200)
     def get(self):
-        from models import User
-        users = User.query.all()
-        return [
-            {
-                "id": u.id,
-                "email": u.email,
-                "name": u.name,
-                "keycloak_sub": u.keycloak_sub,
-            }
-            for u in users
-        ]
+        return KeycloakAdminService.get_users()
 
 # TEST TOKEN la ruta
 @blp_test_tools.route("/token")

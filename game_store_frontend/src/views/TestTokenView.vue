@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import '../assets/test-tools.css'
 
 import AppAlert from '../components/common/AppAlert.vue'
 import TestTokenForm from '../components/test-tools/TestTokenForm.vue'
@@ -64,16 +65,7 @@ async function createToken(
 <template>
   <main class="test-tools-page">
     <header class="page-header">
-      <div>
-        <p class="eyebrow">Herramientas de desarrollo</p>
-
-        <h1>Token para Postman y cURL</h1>
-
-        <p>
-          Genera un JWT temporal sin exponer la llave secreta
-          del servidor.
-        </p>
-      </div>
+      <h1>Token de prueba</h1>
     </header>
 
     <AppAlert
@@ -98,11 +90,5 @@ async function createToken(
 
       <TestTokenResult :result="result" />
     </section>
-
-    <aside class="security-note">
-      <strong>Protección incluida:</strong>
-      esta función solamente se habilita en desarrollo, exige una
-      sesión administrativa y limita la duración y los permisos.
-    </aside>
   </main>
 </template>

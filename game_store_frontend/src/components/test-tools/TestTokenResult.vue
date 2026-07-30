@@ -7,8 +7,7 @@ const props = defineProps<{
   result: TestTokenResponse | null
 }>()
 
-const feedback = ref('')
-const copyError = ref('')
+const message = ref('')
 
 const apiBaseUrl = (
     import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -31,37 +30,22 @@ async function copyText(
 ): Promise<void> {
   try {
     await navigator.clipboard.writeText(text)
-    feedback.value = `${label} copiado al portapapeles.`
-    copyError.value = ''
+    message.value = `${label} copiado.`
   } catch {
-    copyError.value =
-        'El navegador bloqueó el portapapeles. Cópialo manualmente.'
-    feedback.value = ''
+    message.value = 'No se pudo copiar. Hazlo manualmente.'
   }
 }
 </script>
 
 <template>
   <section class="panel token-result">
-    <div class="panel-header">
-      <div>
-        <p class="panel-label">Paso 2</p>
-        <h2>Usar en la prueba</h2>
-      </div>
-    </div>
+    <h2>Resultado</h2>
 
     <p
-        v-if="feedback"
+        v-if="message"
         class="copy-feedback"
     >
-      {{ feedback }}
-    </p>
-
-    <p
-        v-if="copyError"
-        class="copy-error"
-    >
-      {{ copyError }}
+      {{ message }}
     </p>
 
     <div
@@ -82,13 +66,13 @@ async function copyText(
         </span>
       </div>
 
-      <label for="generated-token">Bearer token</label>
+      <label for="generated-token">Token</label>
 
       <textarea
           id="generated-token"
           :value="result.token"
           readonly
-          rows="7"
+          rows="5"
       />
 
       <button
@@ -99,41 +83,29 @@ async function copyText(
         Copiar token
       </button>
 
-      <label for="curl-example">Ejemplo cURL</label>
+      <label for="curl-example">cURL</label>
 
       <textarea
           id="curl-example"
           :value="curlCommand"
           readonly
-          rows="8"
+          rows="5"
       />
 
       <button
           class="btn btn-outline"
           type="button"
-          @click="copyText(curlCommand, 'Comando cURL')"
+          @click="copyText(curlCommand, 'cURL')"
       >
         Copiar cURL
       </button>
-
-      <div class="postman-help">
-        <strong>En Postman</strong>
-
-        <p>
-          Authorization → Bearer Token → pega el token.
-        </p>
-      </div>
     </div>
 
-    <div
+    <p
         v-else
         class="token-placeholder"
     >
-      <strong>Aún no hay un token generado.</strong>
-
-      <p>
-        Selecciona los permisos y presiona “Generar token”.
-      </p>
-    </div>
+      Genera un token para verlo aquí.
+    </p>
   </section>
 </template>
