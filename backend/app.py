@@ -128,13 +128,12 @@ def openid_connect():
             redirect_uri=url_for('openid_connect', _external=True)
         )
 
-        id_token = jwt.decode(
-            token['id_token'],
-            options={"verify_signature": False}
+        id_token = keycloak_openid.decode_token(
+            token['id_token']
         )
         access_token = token['access_token']
         # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
-        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(access_token)
         roles = extract_roles(access_payload)
         session['id_token'] = token['id_token']
 
@@ -180,13 +179,12 @@ def login():
             redirect_uri="http://localhost:5173/login/callback"
         )
 
-        id_token = jwt.decode(
-            token['id_token'],
-            options={"verify_signature": False}
+        id_token = keycloak_openid.decode_token(
+            token['id_token']
         )
 
         access_token = token['access_token']
-        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(access_token)
         roles = extract_roles(access_payload)
 
 
@@ -272,8 +270,8 @@ def refresh():
         return jsonify({'error': 'No refresh token'}), 401
     try:
         new_token = keycloak_openid.refresh_token(refresh_token)
-        access_payload = jwt.decode(new_token['access_token'], options={"verify_signature": False})
-        id_payload = jwt.decode(new_token['id_token'], options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(new_token['access_token'])
+        id_payload = keycloak_openid.decode_token(new_token['id_token'])
         roles = extract_roles(access_payload)
         session_token = jwt.encode(
             {
