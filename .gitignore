@@ -18,3 +18,11 @@ backend/migrations/
 .coverage
 
 .scannerwork/
+
+
+.venv/
+venv/
+env/
+**/.venv/
+**/venv/
+**/site-packages/
