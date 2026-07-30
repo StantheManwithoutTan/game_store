@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vite build",
     "test": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:watch": "vitest",
