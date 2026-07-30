@@ -1,6 +1,9 @@
 name: E2E Tests
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   playwright:
     runs-on: ubuntu-latest
