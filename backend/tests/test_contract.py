@@ -14,7 +14,7 @@ class TestConfig(Config):
 app = create_app(TestConfig)
 
 # 2. Crear schema (antes de la función)
-schema = schemathesis.from_wsgi("/api/openapi.json", app)
+schema = schemathesis.openapi.from_wsgi("/api/openapi.json", app)
 
 @schema.parametrize()
 def test_api_schema(case):
