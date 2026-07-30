@@ -114,80 +114,6 @@ def extract_roles(access_payload):
     return list(set(realm_roles + client_roles))
 
 
-
-@app.route('/')
-def home():
-    user = session.get('user')
-    if user:
-        return render_template('home.html', user=user)
-    return redirect(url_for('login_page'))
-
-
-@app.route('/login')
-def login_page():
-    return render_template('login.html')
-
-
-@app.route('/auth/openid_connect')
-def openid_connect():
-    code = request.args.get('code')
-    if not code:
-        redirect_uri = url_for('openid_connect', _external=True)
-        keycloak_auth_url = (
-            f"{KEYCLOAK_EXTERNAL}/realms/{keycloak_openid.realm_name}"
-            f"/protocol/openid-connect/auth?"
-            f"client_id={keycloak_openid.client_id}"
-            f"&response_type=code"
-            f"&redirect_uri={redirect_uri}"
-            f"&scope=openid profile email"
-        )
-        return redirect(keycloak_auth_url)
-
-    try:
-        token = keycloak_openid.token(
-            grant_type='authorization_code',
-            code=code,
-            redirect_uri=url_for('openid_connect', _external=True)
-        )
-
-        id_token = jwt.decode(
-            token['id_token'],
-            options={"verify_signature": False}
-        )
-        access_token = token['access_token']
-        # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
-        access_payload = jwt.decode(access_token, options={"verify_signature": False})
-        roles = extract_roles(access_payload)
-        session['id_token'] = token['id_token']
-
-        session_token = jwt.encode(
-            {
-                'sub': id_token['sub'],
-                'email': id_token.get('email'),
-                'name': id_token.get('name'),
-                'roles': roles,
-                'exp': id_token['exp']
-            },
-            app.config['SECRET_KEY'],
-            algorithm='HS256'
-        )
-
-        session['user'] = {
-            'sub': id_token['sub'],
-            'email': id_token.get('email'),
-            'name': id_token.get('name')
-        }
-
-        session['session_token'] = session_token
-        session['access_token'] = token['access_token']
-        session['refresh_token'] = token.get('refresh_token')
-
-        return redirect(url_for('home'))
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 401
-
-
 @app.route('/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -198,7 +124,7 @@ def login():
         token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
-            redirect_uri="http://localhost:5173/login/callback"
+            redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:5173')}/login/callback"
         )
 
         id_token = jwt.decode(
@@ -227,7 +153,10 @@ def login():
             'access_token': access_token,
             'id_token': token['id_token'],
             'session_token': session_token,
-            'user': id_token,
+            'user': {
+                'name': id_token.get('name'),
+                'email': id_token.get('email'),
+            },
             'refresh_token': token.get('refresh_token')
         }), 200
 
