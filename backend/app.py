@@ -295,8 +295,3 @@ def refresh():
         token_invalid.inc()
         app.logger.exception("Error al refrescar el token")
         return jsonify({'error': 'Token refresh failed'}), 401
-
-
-#@app.route('/debug')
-#def debug():
-#    return jsonify(dict(session))
