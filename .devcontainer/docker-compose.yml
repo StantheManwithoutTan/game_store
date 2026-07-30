@@ -63,6 +63,9 @@ services:
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_PROXY: edge                    # ← confía en X-Forwarded-Proto (HTTPS)
+      KC_HOSTNAME_STRICT: "false"       # ← permite URLs dinámicas como trycloudflare.com
+      KC_HOSTNAME_STRICT_HTTPS: "false" # ← no exige HTTPS internamente
     command:
       - start-dev
       - --import-realm
