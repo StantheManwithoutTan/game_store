@@ -114,7 +114,6 @@ def extract_roles(access_payload):
     return list(set(realm_roles + client_roles))
 
 
-
 @app.route('/')
 def home():
     user = session.get('user')
@@ -187,7 +186,6 @@ def openid_connect():
     except Exception as e:
         return jsonify({'error': str(e)}), 401
 
-
 @app.route('/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -198,7 +196,7 @@ def login():
         token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
-            redirect_uri="http://localhost:5173/login/callback"
+            redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:5173')}/login/callback"
         )
 
         id_token = jwt.decode(
@@ -227,7 +225,10 @@ def login():
             'access_token': access_token,
             'id_token': token['id_token'],
             'session_token': session_token,
-            'user': id_token,
+            'user': {
+                'name': id_token.get('name'),
+                'email': id_token.get('email'),
+            },
             'refresh_token': token.get('refresh_token')
         }), 200
 

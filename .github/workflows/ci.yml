@@ -70,9 +70,11 @@ jobs:
       - name: Validate Docker Compose configuration
         run: docker compose -f .devcontainer/docker-compose.yml config --quiet
 
+      - name: Build backend image
+        run: docker compose -f .devcontainer/docker-compose.yml build backend
+
       - name: Start backend services
-        run: |
-          docker compose -f .devcontainer/docker-compose.yml up -d --build db tempo alloy backend
+        run: docker compose -f .devcontainer/docker-compose.yml up -d db tempo alloy backend
 
       - name: Wait for backend
         run: |
@@ -81,15 +83,10 @@ jobs:
               echo "Backend is ready"
               exit 0
             fi
-
             echo "Waiting for backend... attempt $i/30"
             sleep 5
           done
-
-          echo "Backend did not start in time"
-          docker compose -f .devcontainer/docker-compose.yml ps
-          docker compose -f .devcontainer/docker-compose.yml logs --no-color backend
-          exit 1
+          ...
 
       - name: Prepare ZAP report directory
         run: |
