@@ -30,8 +30,7 @@ jobs:
           pytest --cov=app --cov-report=xml --cov-report=term tests/
         env:
           TESTING: "True"
-          SECRET_KEY: "ci-test-secret-key-at-least-32-bytes-long"
-
+          SECRET_KEY: "test-secret"
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
