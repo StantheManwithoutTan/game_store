@@ -2,6 +2,20 @@ import os
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.environ.get('FLASK_SECRET_KEY')
+
+
+    # parte del generador del token
+    ENABLE_TEST_TOOLS = (
+            os.environ.get('ENABLE_TEST_TOOLS', 'false').lower()
+            in {'1', 'true', 'yes'}
+    )
+
+    #desative que pytest  intentará conectarse a alloy:4317
+    ENABLE_TELEMETRY = (
+            os.environ.get("ENABLE_TELEMETRY", "true").lower()
+            in {"1", "true", "yes"}
+    )
+
     SQLALCHEMY_DATABASE_URI = (
         f"postgresql://{os.environ.get('POSTGRES_USER', 'postgres')}:"
         f"{os.environ.get('POSTGRES_PASSWORD', 'postgres')}@"

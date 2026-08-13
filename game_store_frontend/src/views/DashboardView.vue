@@ -62,6 +62,13 @@ const userName = computed(
 
       <div class="header-actions">
         <RouterLink
+            class="btn btn-outline"
+            to="/herramientas/token"
+        >
+          Token de prueba
+        </RouterLink>
+
+        <RouterLink
             class="btn btn-secondary"
             to="/productos"
         >

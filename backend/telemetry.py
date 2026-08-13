@@ -8,7 +8,8 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 import logging
-from pythonjsonlogger import jsonlogger
+#cambie este import porque un warning de que era obsolote
+from pythonjsonlogger.json import JsonFormatter
 from flask import request
 
 
@@ -49,7 +50,7 @@ def setup_telemetry(app):
 
 def setup_logging(app):
     handler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter(
+    formatter = JsonFormatter(
         fmt="%(asctime)s %(levelname)s %(name)s %(message)s %(trace_id)s %(span_id)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )

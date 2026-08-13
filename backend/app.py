@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # Importar las configuraciones, extensiones y rutas
 from flask_cors import CORS
 from config import Config
+
 from extensions import db, migrate, api, limiter
 from routes import register_blueprints
 from prometheus_flask_exporter import PrometheusMetrics
@@ -18,6 +19,8 @@ from urllib.parse import quote
 from telemetry import setup_telemetry, setup_logging
 
 from metrics import login_failures, token_invalid
+
+from extensions import db, migrate, api, limiter, marshmallow_plugin
 
 load_dotenv()
 
@@ -29,6 +32,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
 
     app.config.from_object(config_class)
+    app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
+    app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
+    if os.environ.get('FLASK_ENV') == 'production':
+        app.config.setdefault('SESSION_COOKIE_SECURE', True)
+
 # 1. DEFINE ALLOWED ORIGINS HERE
     # Explicitly include both local development and your deployed Vercel frontend app
     allowed_origins = [
@@ -52,10 +60,26 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate.init_app(app, db)
-    api.init_app(app)
+
+    # esto para quitar el warning Eso generará nombres claros como
+    #Game
+    #GameList
+    #GameUpdate
+    #Product
+    #ProductList
+    #ProductUpdate
+    api.init_app(
+        app,
+        spec_kwargs={
+            "marshmallow_plugin": marshmallow_plugin
+        }
+    )
     limiter.init_app(app)
 
-    setup_telemetry(app)
+    #desativa el warning el las pruebas pytest no intentará conectarse a alloy
+    if app.config.get("ENABLE_TELEMETRY", True):
+        setup_telemetry(app)
+
     setup_logging(app)
 
     metrics = PrometheusMetrics(app)
@@ -155,13 +179,12 @@ def openid_connect():
             redirect_uri=url_for('openid_connect', _external=True)
         )
 
-        id_token = jwt.decode(
-            token['id_token'],
-            options={"verify_signature": False}
+        id_token = keycloak_openid.decode_token(
+            token['id_token']
         )
         access_token = token['access_token']
         # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
-        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(access_token)
         roles = extract_roles(access_payload)
         session['id_token'] = token['id_token']
 
@@ -189,8 +212,9 @@ def openid_connect():
 
         return redirect(url_for('home'))
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 401
+    except Exception:
+        app.logger.exception("Error en OpenID Connect")
+        return jsonify({'error': 'Authentication failed'}), 401
 
 @app.route('/auth/login', methods=['POST'])
 def login():
@@ -205,13 +229,12 @@ def login():
             redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:5173')}/login/callback"
         )
 
-        id_token = jwt.decode(
-            token['id_token'],
-            options={"verify_signature": False}
+        id_token = keycloak_openid.decode_token(
+            token['id_token']
         )
 
         access_token = token['access_token']
-        access_payload = jwt.decode(access_token, options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(access_token)
         roles = extract_roles(access_payload)
 
 
@@ -238,9 +261,10 @@ def login():
             'refresh_token': token.get('refresh_token')
         }), 200
 
-    except Exception as e:
+    except Exception:
         login_failures.inc()
-        return jsonify({'error': str(e)}), 401
+        app.logger.exception("Error durante el login")
+        return jsonify({'error': 'Authentication failed'}), 401
 
 
 @app.route('/auth/logout', methods=['POST'])
@@ -299,8 +323,8 @@ def refresh():
         return jsonify({'error': 'No refresh token'}), 401
     try:
         new_token = keycloak_openid.refresh_token(refresh_token)
-        access_payload = jwt.decode(new_token['access_token'], options={"verify_signature": False})
-        id_payload = jwt.decode(new_token['id_token'], options={"verify_signature": False})
+        access_payload = keycloak_openid.decode_token(new_token['access_token'])
+        id_payload = keycloak_openid.decode_token(new_token['id_token'])
         roles = extract_roles(access_payload)
         session_token = jwt.encode(
             {
@@ -320,11 +344,7 @@ def refresh():
             'access_token': new_token['access_token'],
             'session_token': session_token
         }), 200
-    except Exception as e:
+    except Exception:
         token_invalid.inc()
-        return jsonify({'error': str(e)}), 401
-
-
-@app.route('/debug')
-def debug():
-    return jsonify(dict(session))
+        app.logger.exception("Error al refrescar el token")
+        return jsonify({'error': 'Token refresh failed'}), 401
