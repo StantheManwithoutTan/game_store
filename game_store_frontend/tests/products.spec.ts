@@ -49,6 +49,9 @@ test.describe('Productos', () => {
       route.fulfill({ status: 200, body: JSON.stringify([]) })
     )
 
+    await page.route('**/api/stocks/historial', (route) =>
+      route.fulfill({ status: 200, body: JSON.stringify([]) }) )
+
     await page.goto('/dashboard')
     await page.waitForLoadState('networkidle')
 
