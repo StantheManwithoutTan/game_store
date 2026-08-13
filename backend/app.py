@@ -37,14 +37,27 @@ def create_app(config_class=Config):
     if os.environ.get('FLASK_ENV') == 'production':
         app.config.setdefault('SESSION_COOKIE_SECURE', True)
 
+# 1. DEFINE ALLOWED ORIGINS HERE
+    # Explicitly include both local development and your deployed Vercel frontend app
+    allowed_origins = [
+        "http://localhost:5173",
+        "https://game-store-deployed.vercel.app"
+    ]
+    
+    # Proactively check if an environment variable is present, and add it if so
+    frontend_env = os.environ.get("FRONTEND_URL")
+    if frontend_env and frontend_env not in allowed_origins:
+        allowed_origins.append(frontend_env)
+
+    # 2. LET FLASK-CORS HANDLE THE HEADERS AUTOMATICALLY
     CORS(
         app,
-        origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')],
+        resources={r"/*": {"origins": allowed_origins}},
         supports_credentials=True,
-        automatic_options=True
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     )
 
-    # Crea instancias de la base de datos y de los endpoints de api
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -72,37 +85,31 @@ def create_app(config_class=Config):
     metrics = PrometheusMetrics(app)
     register_blueprints(api)
 
-    # Incluido para produccion y para que pruebas pueden acceder a configuracion de cabeceras de HTTP
     @app.after_request
     def add_security_headers(response):
-        response.headers['Strict-Transport-Security'] = (
-            'max-age=31536000; includeSubDomains'
-        )
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-Content-Type-Options'] = 'nosniff'
+
+        # Safely extract the request origin or fallback to Vercel production url for CSP connect-src
+        current_origin = "https://vercel.app"
 
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
             "script-src 'self' https://cdn.jsdelivr.net 'sha256-p+ObFLxIXgmaTA9HdZ4tXsRUW76uEH+R2ZpUk8hESPE='; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             "img-src 'self' data: https://cdn.jsdelivr.net; "
-            "connect-src 'self'; "
+            f"connect-src 'self' {current_origin} https://casino-jewellery-hired-broadcast.trycloudflare.com; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'"
         )
 
-        response.headers['Permissions-Policy'] = (
-            'camera=(), microphone=(), geolocation=()'
-        )
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        response.headers['Cross-Origin-Embedder-Policy'] = 'credentialless'
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
 
-        response.headers['Cross-Origin-Embedder-Policy'] = (
-            'credentialless'
-        )
-
-        response.headers['Cross-Origin-Opener-Policy'] = (
-            'same-origin'
-        )
+        # REMOVED: Manual Access-Control-Allow-* header overrides to prevent preflight conflicts.
 
         return response
 
