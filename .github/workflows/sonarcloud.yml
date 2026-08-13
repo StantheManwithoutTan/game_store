@@ -27,7 +27,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          "pip install --require-hashes --only-binary :all: -r requirements.txt"
+          pip install --require-hashes --only-binary :all: -r requirements.txt
 
       - name: Run backend tests with coverage
         run: |
