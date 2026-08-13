@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: "pip install --require-hashes -r --only-binary :all: requirements.txt"
+      - run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
         working-directory: backend
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: "pip install --require-hashes -r --only-binary :all: requirements.txt"
+      - run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
       - run: pytest tests/test_product_service.py tests/test_stock_service.py -v --cov
 
   security-audit:
@@ -52,7 +52,7 @@ jobs:
         run: docker pull postgres:15
 
       - name: Install dependencies
-        run: "pip install --require-hashes -r --only-binary :all: requirements.txt"
+        run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
 
       - name: Install security tools
         run: pip install pip-audit
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: "pip install --require-hashes -r --only-binary :all: requirements.txt"
+      - run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
       - run: docker pull postgres:15
       - run: pytest tests/test_product_integration.py tests/test_stock_integration.py -v --cov
 
@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: "pip install --require-hashes -r --only-binary :all: requirements.txt"
+      - run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
       - run: docker pull postgres:15
       - run: pytest tests/test_product_api.py tests/test_permissions.py tests/test_security.py -v --cov
 
