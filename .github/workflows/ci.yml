@@ -48,6 +48,23 @@ jobs:
       - uses: actions/checkout@v4
       - run: pip install pip-audit
       - run: pip-audit -r requirements.txt
+      - name: Pre-pull testcontainers image
+        run: docker pull postgres:15
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install security tools
+        run: pip install pip-audit
+
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
+
+      - name: Product Unit tests
+        run: pytest tests/test_product_service.py -v --cov=services --cov=models --cov-report=xml
+
+      - name: Stock Unit tests
+        run: pytest tests/test_stock_service.py -v --cov=services --cov=models --cov-report=xml
 
   quality-gates:
     needs: checkout-and-build
