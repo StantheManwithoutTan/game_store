@@ -3,7 +3,6 @@ on: [push, pull_request]
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: ci-${{ github.ref_name }}
@@ -46,7 +45,7 @@ jobs:
       run: { working-directory: backend }
     steps:
       - uses: actions/checkout@v4
-      - run: pip install pip-audit
+      - run: "pip install pip-audit==2.10.1 --only-binary :all:"
       - run: pip-audit -r requirements.txt
       - name: Pre-pull testcontainers image
         run: docker pull postgres:15
@@ -55,7 +54,7 @@ jobs:
         run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
 
       - name: Install security tools
-        run: pip install pip-audit
+        run: "pip install pip-audit==2.10.1 --only-binary :all:"
 
       - name: Audit Python dependencies
         run: pip-audit -r requirements.txt
@@ -89,7 +88,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       
-      - run: npm install --ignore-scripts --global vercel@latest
+      - run: npm install --ignore-scripts --global vercel@58.9.0
 
       - name: Pull Vercel Environment Info
         env:
@@ -151,7 +150,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - run: npm install --ignore-scripts
+      - run: npm ci --ignore-scripts
       - run: npx --no-install playwright@1.61.0 install chromium
       - name: Create .env for CI
         run: |
@@ -209,7 +208,7 @@ jobs:
             curl --fail --silent http://localhost:5000/login > /dev/null && break
             sleep 5
           done
-      - run: mkdir -p security && chmod 777 security
+      - run: mkdir -p security && chmod 750 security
       - run: |
           docker run --rm --network host \
             -v "${{ github.workspace }}/security:/zap/wrk:rw" \
@@ -226,6 +225,9 @@ jobs:
 
   # ═══════════════ FASE 4: DOCKER BUILD ═══════════════
   docker-build:
+    permissions:
+      contents: read
+      packages: write
     needs:
       - integration-tests
       - api-tests
@@ -261,7 +263,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - run: npm install --ignore-scripts --global vercel@latest
+      - run: npm install --ignore-scripts --global vercel@58.9.0
       - name: Pull Vercel Environment Info
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
