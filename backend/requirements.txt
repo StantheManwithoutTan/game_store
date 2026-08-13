@@ -525,8 +525,9 @@ flask-cors==6.0.0 \
     --hash=sha256:4592c1570246bf7beee96b74bc0adbbfcb1b0318f6ba05c412e8909eceec3393 \
     --hash=sha256:6332073356452343a8ccddbfec7befdc3fdd040141fe776ec9b94c262f058657
     # via -r requirements.in
-flask-limiter==3.9.0 \
-    --hash=sha256:343cf9bd58d7aa3495a3e61e819c1b07474e345ecef5dfc10df99205ae8c0d5c
+flask-limiter==3.9.2 \
+    --hash=sha256:b110049cf7f7b1c5e24f01c3c76e34357303ee64d27a9b32e88e84ea8a0fc97b \
+    --hash=sha256:d1e98c58655703f0a30dbc7c69b6b14afb5a54845cedee3769525327473bfaeb
     # via -r requirements.in
 flask-migrate==4.1.0 \
     --hash=sha256:1a336b06eb2c3ace005f5f2ded8641d534c18798d64061f6ff11f79e1434126d \
