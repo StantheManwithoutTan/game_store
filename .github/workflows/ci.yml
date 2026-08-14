@@ -236,8 +236,17 @@ jobs:
       - quality-gates
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+
+    env:
+      REPO_LOWER: ""
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lowercase Repository Name
+        id: repo_name
+        run: echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
           registry: ghcr.io
@@ -249,8 +258,8 @@ jobs:
           file: backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/backend:latest
-            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LOWER }}/backend:latest
+            ghcr.io/${{ env.REPO_LOWER }}/backend:${{ github.sha }}
 
   # ═══════════════ FASE 5: DEPLOY ═══════════════
   deploy-production:
