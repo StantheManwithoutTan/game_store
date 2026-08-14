@@ -119,6 +119,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - grafana-storage:/var/lib/grafana
       - ../grafana/datasources:/etc/grafana/provisioning/datasources
       - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
@@ -179,13 +180,24 @@ services:
   k6:
     image: grafana/k6:latest
     environment:
-    - JWT_SECRET=0d5072acbaca9c3405e71105bf7626a0d598391154d7d4dea739ad371742369a
+      JWT_SECRET: 0d5072acbaca9c3405e71105bf7626a0d598391154d7d4dea739ad371742369a
+      K6_PROMETHEUS_RW_SERVER_URL: http://prometheus:9090/api/v1/write
+      K6_PROMETHEUS_RW_TREND_STATS: "p(50),p(90),p(95),p(99),avg,min,max"
     volumes:
       - ../backend/k6:/scripts
       - ../backend/results:/results
-    command: run /scripts/load-test.js --out json=/results/k6-results.json
+    command:
+      - run
+      - --out
+      - experimental-prometheus-rw
+      - --out
+      - json=/results/k6-results.json
+      - --tag
+      - testid=game-store-local
+      - /scripts/load-test.js
     depends_on:
       - backend
+      - prometheus
 
 volumes:
   postgres-data:
