@@ -18,6 +18,6 @@ export default function () {
     amount: 1,
     motive: 'test concurrente',
   });
-  const res = http.post('http://backend:5000/api/stocks/entrada', payload, { headers });
+  const res = http.post('https://backend:5000/api/stocks/entrada', payload, { headers });
   check(res, { 'status is 201': (r) => r.status === 201 });
 }

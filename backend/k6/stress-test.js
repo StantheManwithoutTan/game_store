@@ -18,7 +18,7 @@ export const options = {
 export default function () {
     const token = makeToken(['product:view'], __ENV.JWT_SECRET);
     const headers = { Authorization: `Bearer ${token}` };
-    const res = http.get('http://backend:5000/api/products/', { headers });
+    const res = http.get('https://backend:5000/api/products/', { headers });
     check(res, {
         'status is 200': (r) => r.status === 200,
         'duration < 500ms': (r) => r.timings.duration < 500,
