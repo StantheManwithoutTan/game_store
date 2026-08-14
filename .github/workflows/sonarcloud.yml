@@ -27,7 +27,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          pip install -r requirements.txt
+          pip install --require-hashes --only-binary :all: -r requirements.txt
 
       - name: Run backend tests with coverage
         run: |
@@ -45,7 +45,7 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd game_store_frontend
-          npm ci
+          npm ci --ignore-scripts
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
