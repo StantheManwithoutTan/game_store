@@ -47,6 +47,11 @@ jobs:
           cd game_store_frontend
           npm ci --ignore-scripts
 
+      - name: Run frontend tests with coverage
+        run: |
+          cd game_store_frontend
+          npm run test
+
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
