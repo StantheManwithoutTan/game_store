@@ -37,27 +37,14 @@ def create_app(config_class=Config):
     if os.environ.get('FLASK_ENV') == 'production':
         app.config.setdefault('SESSION_COOKIE_SECURE', True)
 
-# 1. DEFINE ALLOWED ORIGINS HERE
-    # Explicitly include both local development and your deployed Vercel frontend app
-    allowed_origins = [
-        "http://localhost:5173",
-        "https://game-store-deployed.vercel.app"
-    ]
-    
-    # Proactively check if an environment variable is present, and add it if so
-    frontend_env = os.environ.get("FRONTEND_URL")
-    if frontend_env and frontend_env not in allowed_origins:
-        allowed_origins.append(frontend_env)
-
-    # 2. LET FLASK-CORS HANDLE THE HEADERS AUTOMATICALLY
     CORS(
         app,
-        resources={r"/*": {"origins": allowed_origins}},
+        origins=[os.environ.get('FRONTEND_URL', 'http://localhost:5173')],
         supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization"],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        automatic_options=True
     )
 
+    # Crea instancias de la base de datos y de los endpoints de api
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -85,31 +72,37 @@ def create_app(config_class=Config):
     metrics = PrometheusMetrics(app)
     register_blueprints(api)
 
+    # Incluido para produccion y para que pruebas pueden acceder a configuracion de cabeceras de HTTP
     @app.after_request
     def add_security_headers(response):
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Strict-Transport-Security'] = (
+            'max-age=31536000; includeSubDomains'
+        )
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-Content-Type-Options'] = 'nosniff'
-
-        # Safely extract the request origin or fallback to Vercel production url for CSP connect-src
-        current_origin = "https://vercel.app"
 
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
             "script-src 'self' https://cdn.jsdelivr.net 'sha256-p+ObFLxIXgmaTA9HdZ4tXsRUW76uEH+R2ZpUk8hESPE='; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             "img-src 'self' data: https://cdn.jsdelivr.net; "
-            f"connect-src 'self' {current_origin} https://casino-jewellery-hired-broadcast.trycloudflare.com; "
+            "connect-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'"
         )
 
-        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
-        response.headers['Cross-Origin-Embedder-Policy'] = 'credentialless'
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers['Permissions-Policy'] = (
+            'camera=(), microphone=(), geolocation=()'
+        )
 
-        # REMOVED: Manual Access-Control-Allow-* header overrides to prevent preflight conflicts.
+        response.headers['Cross-Origin-Embedder-Policy'] = (
+            'credentialless'
+        )
+
+        response.headers['Cross-Origin-Opener-Policy'] = (
+            'same-origin'
+        )
 
         return response
 
@@ -144,77 +137,6 @@ def extract_roles(access_payload):
     return list(set(realm_roles + client_roles))
 
 
-@app.route('/')
-def home():
-    user = session.get('user')
-    if user:
-        return render_template('home.html', user=user)
-    return redirect(url_for('login_page'))
-
-
-@app.route('/login')
-def login_page():
-    return render_template('login.html')
-
-
-@app.route('/auth/openid_connect')
-def openid_connect():
-    code = request.args.get('code')
-    if not code:
-        redirect_uri = url_for('openid_connect', _external=True)
-        keycloak_auth_url = (
-            f"{KEYCLOAK_EXTERNAL}/realms/{keycloak_openid.realm_name}"
-            f"/protocol/openid-connect/auth?"
-            f"client_id={keycloak_openid.client_id}"
-            f"&response_type=code"
-            f"&redirect_uri={redirect_uri}"
-            f"&scope=openid profile email"
-        )
-        return redirect(keycloak_auth_url)
-
-    try:
-        token = keycloak_openid.token(
-            grant_type='authorization_code',
-            code=code,
-            redirect_uri=url_for('openid_connect', _external=True)
-        )
-
-        id_token = keycloak_openid.decode_token(
-            token['id_token']
-        )
-        access_token = token['access_token']
-        # Aqui habria que dcodificar el token inicial para extraer los roles del usuario especifico
-        access_payload = keycloak_openid.decode_token(access_token)
-        roles = extract_roles(access_payload)
-        session['id_token'] = token['id_token']
-
-        session_token = jwt.encode(
-            {
-                'sub': id_token['sub'],
-                'email': id_token.get('email'),
-                'name': id_token.get('name'),
-                'roles': roles,
-                'exp': id_token['exp']
-            },
-            app.config['SECRET_KEY'],
-            algorithm='HS256'
-        )
-
-        session['user'] = {
-            'sub': id_token['sub'],
-            'email': id_token.get('email'),
-            'name': id_token.get('name')
-        }
-
-        session['session_token'] = session_token
-        session['access_token'] = token['access_token']
-        session['refresh_token'] = token.get('refresh_token')
-
-        return redirect(url_for('home'))
-
-    except Exception:
-        app.logger.exception("Error en OpenID Connect")
-        return jsonify({'error': 'Authentication failed'}), 401
 
 @app.route('/auth/login', methods=['POST'])
 def login():
