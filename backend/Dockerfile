@@ -5,7 +5,9 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    --timeout 120 \
+    --retries 5
 
 RUN python -c "import dotenv; print('DOTENV OK')"
 

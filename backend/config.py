@@ -38,5 +38,6 @@ class Config:
     RATELIMIT_STRATEGY = 'fixed-window'
     # Quita el # de aqui si se quiere probar el stress test de productos ( dentro el contenedor de k6)
     # RATELIMIT_ENABLED = False
+    OPENAPI_SWAGGER_UI_CONFIG = {"persistAuthorization": True}
 
     

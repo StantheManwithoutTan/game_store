@@ -340,6 +340,8 @@ class TestToken(MethodView):
             "expires_in": data["expires_minutes"] * 60,
         }
 
+
+
 def register_blueprints(api):
     api.register_blueprint(blp_games)
     api.register_blueprint(blp_products)

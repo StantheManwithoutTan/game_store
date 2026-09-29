@@ -12,6 +12,7 @@ import logging
 from pythonjsonlogger.json import JsonFormatter
 from flask import request
 
+from extensions import db
 
 
 from routes import _get_current_user
@@ -21,6 +22,9 @@ def format_trace_id(tid):
 
 def format_span_id(sid):
     return format(sid, "016x")
+
+def setup_sqlalchemy_telemetry():
+    SQLAlchemyInstrumentor().instrument()
 
 def setup_telemetry(app):
     resource = Resource.create({
@@ -46,7 +50,8 @@ def setup_telemetry(app):
     trace.set_tracer_provider(provider)
 
     FlaskInstrumentor().instrument_app(app)
-    SQLAlchemyInstrumentor().instrument()
+    with app.app_context():
+        SQLAlchemyInstrumentor().instrument(engines=list(db.engines.values()))
 
 def setup_logging(app):
     handler = logging.StreamHandler()
