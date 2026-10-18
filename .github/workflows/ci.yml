@@ -143,20 +143,25 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx --no-install playwright@1.61.0 install chromium
       - name: Create .env for CI
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          KEYCLOAK_CLIENT_SECRET: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
         run: |
           cat <<EOF > ../.devcontainer/.env
-          POSTGRES_USER=postgres
-          POSTGRES_PASSWORD=postgres
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
           POSTGRES_DB=game_store
           DATABASE_HOST=db
           DATABASE_PORT=5432
-          SECRET_KEY=ci-e2e-test-secret
+          SECRET_KEY=${SECRET_KEY}
           FRONTEND_URL=http://localhost:5173
           KEYCLOAK_SERVER_URL=http://keycloak:8080
           KEYCLOAK_SERVER_URL_EXTERNAL=http://localhost:8080
           KEYCLOAK_CLIENT_ID=game-store-client
           KEYCLOAK_REALM=game-store
-          KEYCLOAK_CLIENT_SECRET=
+          KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
       - run: docker compose -f ../.devcontainer/docker-compose.yml up -d db backend
       - run: |
@@ -176,20 +181,26 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Create .env for security scan
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          KEYCLOAK_CLIENT_SECRET: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+        run: |
           cat <<EOF > .devcontainer/.env
-          POSTGRES_USER=postgres
-          POSTGRES_PASSWORD=postgres
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
           POSTGRES_DB=game_store
           DATABASE_HOST=db
           DATABASE_PORT=5432
-          SECRET_KEY=ci-security-test-secret
+          SECRET_KEY=${SECRET_KEY}
           FRONTEND_URL=http://localhost:5173
           KEYCLOAK_SERVER_URL=http://keycloak:8080
           KEYCLOAK_SERVER_URL_EXTERNAL=http://localhost:8080
           KEYCLOAK_CLIENT_ID=game-store-client
           KEYCLOAK_REALM=game-store
-          KEYCLOAK_CLIENT_SECRET=
+          KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
       - run: docker compose -f .devcontainer/docker-compose.yml build backend
       - run: docker compose -f .devcontainer/docker-compose.yml up -d db backend

@@ -1,5 +1,4 @@
-from prometheus_client import Counter, Gauge, Histogram
-import functools
+from prometheus_client import Counter, Gauge
 
 # Negocio
 products_total = Gauge("game_store_products_total", "Total de productos activos")

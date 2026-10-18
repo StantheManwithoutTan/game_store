@@ -173,14 +173,14 @@ def login():
         )
 
         return jsonify({
-            'access_token': access_token,
-            'id_token': token['id_token'],
-            'session_token': session_token,
+            'access_token': access_token, # indica el rol y el permiso que tiene el usuario
+            'id_token': token['id_token'], # para probar que un usuario ha entrado exitosamente
+            'session_token': session_token, # un identificador de la sesion que se guarda en el almacen local
             'user': {
                 'name': id_token.get('name'),
                 'email': id_token.get('email'),
             },
-            'refresh_token': token.get('refresh_token')
+            'refresh_token': token.get('refresh_token') # Sobrevive por tiempo para confirmar que el usuario puede entrar de nuevo.
         }), 200
 
     except Exception:
