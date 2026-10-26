@@ -163,7 +163,7 @@ jobs:
           KEYCLOAK_REALM=game-store
           KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
-      - run: docker compose -f ../.devcontainer/docker-compose.yml up -d db backend
+      - run: docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml up -d db backend
       - run: |
           for i in {1..15}; do
             curl --fail --silent http://localhost:5000/login && break
@@ -172,7 +172,7 @@ jobs:
       - run: npx --no-install playwright@1.61.0 test
         env:
           JWT_SECRET_ACTUAL: ${{ secrets.JWT_SECRET_ACTUAL }}
-      - run: docker compose -f ../.devcontainer/docker-compose.yml down -v
+      - run: docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml down -v
         if: always()
 
   security-zap:
@@ -202,8 +202,13 @@ jobs:
           KEYCLOAK_REALM=game-store
           KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
-      - run: docker compose -f .devcontainer/docker-compose.yml build backend
-      - run: docker compose -f .devcontainer/docker-compose.yml up -d db backend
+      - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml build backend
+      - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml up -d db backend
+      - name: Show container diagnostics
+        if: failure()
+        run: |
+          docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml ps
+          docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml logs --no-color db backend
       - run: |
           for i in {1..30}; do
             curl --fail --silent http://localhost:5000/login > /dev/null && break
@@ -221,7 +226,7 @@ jobs:
           name: zap-security-report
           path: security/zap-report.html
           retention-days: 14
-      - run: docker compose -f .devcontainer/docker-compose.yml down -v --remove-orphans
+      - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml down -v --remove-orphans
         if: always()
 
   # ═══════════════ FASE 4: DOCKER BUILD ═══════════════
