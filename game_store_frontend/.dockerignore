@@ -1,0 +1,7 @@
+# necesario porque COPY . . del dockerfile puede sobreescribir el node_modules instalado y copiar el .env dentro de la imagen
+
+node_modules
+dist
+.env*
+playwright-report
+test-results
