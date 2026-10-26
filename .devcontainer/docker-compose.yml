@@ -27,6 +27,7 @@ services:
   frontend:
     build:
       context: ../game_store_frontend
+      dockerfile: Dockerfile.dev
     volumes:
       - ../game_store_frontend:/app
       # excluimos el node_modules del frontend para que usa el del contenedor para evitar conflictos
@@ -199,7 +200,7 @@ services:
   k6:
     image: grafana/k6:latest
     environment:
-    - JWT_SECRET=0d5072acbaca9c3405e71105bf7626a0d598391154d7d4dea739ad371742369a
+    - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ../backend/k6:/scripts
       - ../backend/results:/results
