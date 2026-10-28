@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: { url: 'http://localhost:5173' },
+    },
     include: ['src/**/*.{test,spec}.{ts,js,tsx,jsx}'],
     coverage: {
       provider: 'v8',
