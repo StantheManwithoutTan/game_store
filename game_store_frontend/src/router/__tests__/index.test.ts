@@ -31,5 +31,4 @@ describe('router auth guard', () => {
 
     expect(router.currentRoute.value.path).toBe(path)
   })
-
 })
