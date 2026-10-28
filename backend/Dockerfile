@@ -13,6 +13,9 @@ RUN python -c "import dotenv; print('DOTENV OK')"
 
 COPY . .
 
+ARG GIT_SHA=dev
+ENV GIT_SHA=$GIT_SHA
+
 EXPOSE 5000
 
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "4", "--threads", "2", "app:app"]

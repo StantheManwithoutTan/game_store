@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify, session, redirect, url_for, render_template
 import os
 
+
+from sqlalchemy import text
+
+
 # Importar las bibliotecas de Keycloak, OAUTH2, JWT, etc. para autenticación y autorización
 import jwt
 from keycloak import KeycloakOpenID
@@ -270,3 +274,8 @@ def refresh():
         token_invalid.inc()
         app.logger.exception("Error al refrescar el token")
         return jsonify({'error': 'Token refresh failed'}), 401
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "version": os.environ.get("GIT_SHA", "dev")}
