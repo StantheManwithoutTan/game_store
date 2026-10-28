@@ -4,8 +4,10 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci  # Use ci instead of install for reproducible builds
+RUN npm ci --ignore-scripts  # Use ci instead of install for reproducible builds
 
 COPY . .
+
+USER node
 
 CMD ["npm", "run", "dev", "--", "--host"]

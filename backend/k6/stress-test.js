@@ -15,7 +15,7 @@ export const options = {
   },
 };
 
-export default function () {
+export default function stressTest() {
     const token = makeToken(['product:view'], __ENV.JWT_SECRET);
     const headers = { Authorization: `Bearer ${token}` };
     const res = http.get('https://backend:5000/api/products/', { headers });

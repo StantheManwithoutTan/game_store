@@ -80,6 +80,9 @@ case "$DEPLOY_ENV" in
   production)
     [[ "$PUBLIC_HOST" == *production* ]] || die "El host no parece de producción"
     ;;
+  *)
+    die "DEPLOY_ENV no reconocido: $DEPLOY_ENV"
+    ;;
 esac
 [[ "$PUBLIC_HOST" =~ ^[a-z0-9.-]+$ ]] || die "PUBLIC_HOST inválido: $PUBLIC_HOST"
 [[ "$PUBLIC_URL" == "https://$PUBLIC_HOST" ]] \
