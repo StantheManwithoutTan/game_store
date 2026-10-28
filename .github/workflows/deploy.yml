@@ -1,0 +1,103 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      host:
+        type: string
+        required: true
+      image_tag:
+        type: string
+        required: true
+    secrets:
+      SSH_PRIVATE_KEY:
+        required: true
+      POSTGRES_PASSWORD:
+        required: true
+      FLASK_SECRET_KEY:
+        required: true
+      KEYCLOAK_CLIENT_SECRET:
+        required: true
+      KEYCLOAK_ADMIN_PASSWORD:
+        required: true
+      GRAFANA_ADMIN_PASSWORD:
+        required: false
+      QA_PASSWORD:
+        required: false
+      GHCR_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar deploy.env
+        run: |
+          cat > deploy.env <<'EOF'
+          DEPLOY_ENV=${{ inputs.environment }}
+          PUBLIC_HOST=${{ inputs.host }}
+          PUBLIC_URL=https://${{ inputs.host }}
+          ACME_EMAIL=${{ vars.ACME_EMAIL }}
+          REGISTRY=ghcr.io/stanthemanwithouttan/game_store
+          IMAGE_TAG=${{ inputs.image_tag }}
+          KEYCLOAK_VERSION=${{ vars.KEYCLOAK_VERSION }}
+          POSTGRES_USER=gamestore
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=appdb
+          DATABASE_HOST=db
+          DATABASE_PORT=5432
+          FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }}
+          KEYCLOAK_SERVER_URL=http://keycloak:8080
+          KEYCLOAK_SERVER_URL_EXTERNAL=https://${{ inputs.host }}:8443
+          KEYCLOAK_REALM=${{ vars.KEYCLOAK_REALM }}
+          KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }}
+          KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+          KEYCLOAK_ADMIN_USER=kcadmin
+          KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          FRONTEND_URL=https://${{ inputs.host }}
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          QA_PASSWORD=${{ secrets.QA_PASSWORD }}
+          EOF
+          chmod 600 deploy.env
+
+      - name: Desplegar
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          install -m 600 /dev/null key
+          printf '%s\n' "$SSH_KEY" > key
+          bash deploy/scripts/deploy.sh "${{ inputs.host }}" key
+
+      - name: Limpiar archivos temporales
+        if: always()
+        run: rm -f key deploy.env
+
+      - name: Verificar versión desplegada
+        run: |
+          for i in $(seq 1 40); do
+            v="$(curl -fsS --max-time 10 "https://${{ inputs.host }}/health" \
+              | jq -r '.version // empty' 2>/dev/null || true)"
+            if [ "$v" = "${{ inputs.image_tag }}" ]; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "El sistema no respondió con la versión esperada" >&2
+          exit 1

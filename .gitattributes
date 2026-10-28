@@ -1,0 +1,5 @@
+# Para evitar que los archivos de tipo shell y los de deploy lleguen a Linux con finales de linea CRLF
+# CRLF -> Windows, usa /r/n para terminar una linea
+# LF -> Unix, usa solo /n para terminar una linea
+*.sh text eol=lf
+deploy/** text eol=lf

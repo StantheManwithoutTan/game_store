@@ -13,7 +13,6 @@ __pycache__/
 # Exclude Keycloak realm exports
 keycloak/realm-export.json
 
-backend/migrations/
 backend/results/
 backend/results/*
 

@@ -52,6 +52,11 @@ jobs:
           cd game_store_frontend
           npm run test
 
+      - name: Rewrite LCOV paths for SonarCloud
+        run: |
+          sed -i 's#^SF:src/#SF:game_store_frontend/src/#' game_store_frontend/coverage/lcov.info
+          grep -m1 '^SF:' game_store_frontend/coverage/lcov.info
+
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
