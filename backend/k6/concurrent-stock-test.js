@@ -7,7 +7,8 @@ export const options = {
   duration: '30s',
 };
 
-export default function () {
+// Agrega un Stock a la base de datos atraves del backend
+export default function concurrentStockTest() {
   const token = makeToken(['stock:manage'], __ENV.JWT_SECRET);
   const headers = {
     'Content-Type': 'application/json',

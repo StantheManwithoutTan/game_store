@@ -1,5 +1,7 @@
 function stripTrailingSlash(value: string): string {
-  return value.replace(/\/+$/, '')
+  while (value.endsWith('/')) 
+    value = value.slice(0, -1)
+  return value
 }
 
 function browserOrigin(): string {

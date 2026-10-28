@@ -11,58 +11,25 @@ describe('router auth guard', () => {
     localStorage.clear()
   })
 
-  it('redirects unauthenticated users to /login', async () => {
-    await router.push('/dashboard')
+  it.each([
+    ['/dashboard', '/login'],
+    ['/login', '/login'],
+    ['/login/callback', '/login/callback'],
+    ['/', '/login'],
+  ])('routes unauthenticated users from %s to %s', async (path, expectedPath) => {
+    await router.push(path)
     await router.isReady()
 
-    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.path).toBe(expectedPath)
   })
 
-  it('allows /login without a token', async () => {
-    await router.push('/login')
-    await router.isReady()
-
-    expect(router.currentRoute.value.path).toBe('/login')
-  })
-
-  it('allows /login/callback without a token', async () => {
-    await router.push('/login/callback')
-    await router.isReady()
-
-    expect(router.currentRoute.value.path).toBe('/login/callback')
-  })
-
-  it('allows authenticated users into protected routes', async () => {
+  it.each(['/productos', '/stock', '/herramientas/token'])('allows authenticated users into %s', async (path) => {
     localStorage.setItem('session_token', 'token-123')
 
-    await router.push('/productos')
+    await router.push(path)
     await router.isReady()
 
-    expect(router.currentRoute.value.path).toBe('/productos')
+    expect(router.currentRoute.value.path).toBe(path)
   })
 
-  it('allows authenticated users into /stock', async () => {
-    localStorage.setItem('session_token', 'token-123')
-
-    await router.push('/stock')
-    await router.isReady()
-
-    expect(router.currentRoute.value.path).toBe('/stock')
-  })
-
-  it('allows authenticated users into /herramientas/token', async () => {
-    localStorage.setItem('session_token', 'token-123')
-
-    await router.push('/herramientas/token')
-    await router.isReady()
-
-    expect(router.currentRoute.value.path).toBe('/herramientas/token')
-  })
-
-  it('redirects the root path to /login', async () => {
-    await router.push('/')
-    await router.isReady()
-
-    expect(router.currentRoute.value.path).toBe('/login')
-  })
 })
