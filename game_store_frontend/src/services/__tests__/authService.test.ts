@@ -36,7 +36,7 @@ describe('buildKeycloakLogoutUrl', () => {
 
     const url = new URL(buildKeycloakLogoutUrl())
 
-    expect(url.origin).toBe('http://localhost:8080')
+    expect(url.origin).toBe('http://localhost:8443')
     expect(url.searchParams.get('post_logout_redirect_uri')).toBe(
       'http://localhost:5173/login',
     )

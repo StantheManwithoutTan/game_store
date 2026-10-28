@@ -10,6 +10,9 @@ describe('LoginView', () => {
     vi.stubGlobal('location', {
       pathname: '/login',
       href: 'http://localhost/login',
+      protocol: 'http:',
+      hostname: 'localhost',
+      origin: 'http://localhost:5173',
     })
   })
 
@@ -49,11 +52,11 @@ describe('LoginView', () => {
     button.trigger('click')
 
     expect(window.location.href).toBe(
-      'http://localhost:8080/realms/game-store/protocol/openid-connect/auth' +
-        '?client_id=game-store-client' +
-        '&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Flogin%2Fcallback' +
-        '&response_type=code' +
-        '&scope=openid',
-    )
+    'http://localhost:8443/realms/game-store/protocol/openid-connect/auth' +
+      '?client_id=game-store-client' +
+      '&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Flogin%2Fcallback' +
+      '&response_type=code' +
+      '&scope=openid',
+  )
   })
 })

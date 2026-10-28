@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { getApiBaseUrl } from '../../config'
 
 import type { TestTokenResponse } from '../../types/testTools'
 
@@ -9,9 +10,7 @@ const props = defineProps<{
 
 const message = ref('')
 
-const apiBaseUrl = (
-    import.meta.env.VITE_API_URL || 'http://localhost:5000'
-).replace(/\/$/, '')
+const apiBaseUrl = getApiBaseUrl()
 
 const curlCommand = computed(() => {
   if (!props.result) {

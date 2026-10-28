@@ -1,11 +1,8 @@
-export function buildKeycloakLogoutUrl(): string {
-    const keycloakUrl =
-        import.meta.env.VITE_KEYCLOAK_URL ||
-        'http://localhost:8080'
+import { getAppUrl, getKeycloakUrl } from '../config'
 
-    const appUrl =
-        import.meta.env.VITE_APP_URL ||
-        'http://localhost:5173'
+export function buildKeycloakLogoutUrl(): string {
+    const keycloakUrl = getKeycloakUrl()
+    const appUrl = getAppUrl()
 
     const redirectUrl = encodeURIComponent(
         `${appUrl}/login`,
