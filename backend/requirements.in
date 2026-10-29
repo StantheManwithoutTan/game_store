@@ -23,7 +23,9 @@ opentelemetry-exporter-otlp==1.45.1
 opentelemetry-api==1.45.1
 opentelemetry-instrumentation-sqlalchemy==0.66b1
 python-json-logger==4.1.0
-schemathesis==4.24.3
+schemathesis==4.24.2
 certifi==2026.10.19
 graphql-core==3.2.12
+pywin32==312 ; sys_platform == "win32"
+
 

@@ -124,6 +124,12 @@ jobs:
           KEYCLOAK_REALM=game-store
           KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
+      - name: Validar .env generado
+        run: |
+          for key in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB; do
+            grep -Eq "^${key}=.+" ../.devcontainer/.env \
+              || { echo "::error::${key} vacío en ../.devcontainer/.env (¿secret sin definir?)"; exit 1; }
+          done
       - run: docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml up -d db backend
       - run: |
           for i in {1..15}; do
@@ -133,6 +139,12 @@ jobs:
       - run: npx --no-install playwright@1.61.0 test
         env:
           JWT_SECRET_ACTUAL: ${{ secrets.JWT_SECRET_ACTUAL }}
+      - name: Mostrar diagnóstico
+        if: failure()
+        run: |
+          docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml ps -a
+          docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml logs --no-color --tail=200 db backend
+          docker inspect --format '{{.Name}} estado={{.State.Status}} exit={{.State.ExitCode}}' devcontainer-db-1 || true
       - run: docker compose --env-file ../.devcontainer/.env -f ../.devcontainer/docker-compose.yml down -v
         if: always()
 
@@ -163,6 +175,12 @@ jobs:
           KEYCLOAK_REALM=game-store
           KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
           EOF
+      - name: Validar .env generado
+        run: |
+          for key in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB; do
+            grep -Eq "^${key}=.+" .devcontainer/.env \
+              || { echo "::error::${key} vacío en .devcontainer/.env (¿secret sin definir?)"; exit 1; }
+          done
       - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml build backend
       - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml up -d db backend
       - name: Show container diagnostics
@@ -187,6 +205,12 @@ jobs:
           name: zap-security-report
           path: security/zap-report.html
           retention-days: 14
+      - name: Show container diagnostics
+        if: failure()
+        run: |
+          docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml ps -a
+          docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml logs --no-color --tail=200 db backend
+          docker inspect --format '{{.Name}} estado={{.State.Status}} exit={{.State.ExitCode}}' devcontainer-db-1 || true
       - run: docker compose --env-file .devcontainer/.env -f .devcontainer/docker-compose.yml down -v --remove-orphans
         if: always()
 
