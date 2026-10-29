@@ -15,6 +15,7 @@ const result: TestTokenResponse = {
 
 describe('TestTokenResult', () => {
   beforeEach(() => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:5000')
     vi.stubGlobal('navigator', {
       ...navigator,
       clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
@@ -22,6 +23,7 @@ describe('TestTokenResult', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
   })
 
