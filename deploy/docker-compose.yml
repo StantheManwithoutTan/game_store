@@ -55,7 +55,7 @@ services:
     environment:
       FLASK_ENV: production
       FLASK_APP: app.py
-      ENABLE_TEST_TOOLS: "false"
+      ENABLE_TEST_TOOLS: ${ENABLE_TEST_TOOLS:-false}
       ENABLE_TELEMETRY: ${ENABLE_TELEMETRY:-false}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://alloy:4317}
     expose:
