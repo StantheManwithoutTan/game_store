@@ -114,8 +114,8 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./alertmanager/rules.yml:/etc/prometheus/rules.yml
+      - ../deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../deploy/observability/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"
@@ -147,7 +147,7 @@ services:
       - tempo
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./alloy/config.alloy:/etc/alloy/config.alloy
+    - ../deploy/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
     command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
     networks:
       - observability
@@ -158,7 +158,7 @@ services:
     - "-config.file=/etc/tempo.yaml"
     - "--target=all"
     volumes:
-      - ./tempo/tempo.yaml:/etc/tempo.yaml
+      - ../deploy/observability/tempo.yaml:/etc/tempo.yaml:ro
     expose:
       - "4317"   # OTLP gRPC
       - "4318"   # OTLP HTTP
@@ -177,7 +177,7 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     volumes:
-      - ./alertmanager:/etc/alertmanager
+      - ../deploy/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
@@ -196,6 +196,8 @@ services:
     ports:
       - "8082:8080"
     privileged: true
+    networks:
+      - observability
 
   k6:
     image: grafana/k6:latest

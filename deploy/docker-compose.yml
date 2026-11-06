@@ -72,6 +72,7 @@ services:
     networks:
       - edge
       - data
+      - observability
     logging: *default-logging
 
   migrate:
@@ -144,13 +145,97 @@ services:
       - edge
       - data
     logging: *default-logging
+  
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus_data:/prometheus
+    expose: ["9090"]
+    networks: [observability, data]      # 'data' para scrapear backend:5000
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.2
+    restart: unless-stopped
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager"]
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    expose: ["9093"]
+    networks: [observability]
+
+  grafana:
+    image: grafana/grafana:13.0.12
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"            # solo local → acceso por túnel SSH
+    networks: [observability]
+
+  loki:
+    image: grafana/loki:3.6.20
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/local-config.yaml", "-compactor.retention-enabled=true", "-compactor.retention-period=168h"]
+    expose: ["3100"]
+    volumes:
+      - loki_data:/loki
+    networks: [observability]
+
+  tempo:
+    image: grafana/tempo:2.8.0
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    expose: ["3200", "4317", "4318"]
+    networks: [observability]
+
+  alloy:
+    image: grafana/alloy:v1.21.3
+    restart: unless-stopped
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+    expose: ["4317", "4318", "12345"]
+    depends_on: [tempo, loki]
+    networks: [observability]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.33.0
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose: ["8080"]
+    networks: [observability]
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  tempo_data:
+  alertmanager_data:
 
 networks:
   edge:
   data:
     internal: true
+  observability:

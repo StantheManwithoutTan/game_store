@@ -103,6 +103,10 @@ install -m 755 "$DEPLOY_DIR/scripts/backup-db.sh" "$STAGE/scripts/backup-db.sh"
 install -m 755 "$DEPLOY_DIR/scripts/restore-db.sh" "$STAGE/scripts/restore-db.sh"
 install -m 755 "$DEPLOY_DIR/postgres/init-keycloak-db.sh" "$STAGE/postgres/init-keycloak-db.sh"
 install -m 644 "$DEPLOY_DIR/keycloak/realm-export.template.json" "$STAGE/keycloak/realm-export.template.json"
+# Anadido para garantizar que incluir los archivos de observabilidad en el despliegue
+mkdir -p "$STAGE/observability/alloy" "$STAGE/grafana/datasources" "$STAGE/grafana/dashboards"
+cp -R "$DEPLOY_DIR/observability/." "$STAGE/observability/"
+cp -R "$REPO_ROOT/grafana/." "$STAGE/grafana/"
 
 tar -C "$STAGE" -czf - . \
   | ssh "${SSH_OPTS[@]}" "$SSH_USER@$HOST" \
