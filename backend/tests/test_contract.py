@@ -7,13 +7,20 @@ from schemathesis.checks import not_a_server_error
 class TestConfig(Config):
     TESTING = True
     TEST_AUTH = True
-    SECRET_KEY = "schemathesis-test-secret"
+    SECRET_KEY = "test-secret"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     RATELIMIT_ENABLED = False  # avoid rate-limit noise during fuzzing too
 
-# 1. Crear app
+# Crear aplicación de pruebas
 app = create_app(TestConfig)
 
-# 2. Crear schema (antes de la función)
+# Crear tablas en SQLite
+from extensions import db
+
+with app.app_context():
+    db.create_all()
+
+# Crear esquema OpenAPI
 schema = schemathesis.openapi.from_wsgi("/api/openapi.json", app)
 
 @schema.parametrize()

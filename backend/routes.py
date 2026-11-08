@@ -90,6 +90,12 @@ def _get_current_user():
     except Exception:
         return None
 
+
+
+def validar_product_id(product_id):
+    if product_id < 1 or product_id > 2147483647:
+        abort(404, message="Producto no encontrado")
+
 @blp_products.route("/", strict_slashes=False)
 class ProductList(MethodView):
     @require_permission('product:view')
@@ -129,12 +135,14 @@ class ProductById(MethodView):
     @blp_products.response(200, ProductSchema)
     @blp_products.alt_response(404, schema=ErrorResponseSchema)
     def get(self, product_id):
+        validar_product_id(product_id)
         return ProductService.get_by_id(product_id)
 
     @require_permission('product:manage')
     @blp_products.arguments(ProductSchema(partial=True))
     @blp_products.response(200, ProductSchema)
     def put(self, data, product_id):
+        validar_product_id(product_id)
         try:
             return ProductService.update(product_id, data)
         except ValueError as error:
@@ -143,6 +151,7 @@ class ProductById(MethodView):
     @require_permission('product:manage')
     @blp_products.response(204)
     def delete(self, product_id):
+        validar_product_id(product_id)
         ProductService.delete(product_id)
 
 
