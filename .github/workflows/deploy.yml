@@ -70,8 +70,12 @@ jobs:
           KEYCLOAK_ADMIN_USER=kcadmin
           KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           FRONTEND_URL=https://${{ inputs.host }}
+          ENABLE_TEST_TOOLS=${{ vars.ENABLE_TEST_TOOLS }}
           GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           QA_PASSWORD=${{ secrets.QA_PASSWORD }}
+          ENABLE_TELEMETRY=true
+          OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
+          OTEL_SERVICE_NAME=game-store-api-${{ inputs.environment }}
           EOF
           chmod 600 deploy.env
 

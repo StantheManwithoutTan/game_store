@@ -3,24 +3,30 @@
 # Se ejecuta UNA VEZ en cada VM Ubuntu, como azureuser con sudo.
 set -Eeuo pipefail
 
+# Usa el usuario que invocó sudo, o el usuario actual si no se usó sudo.
 DEPLOY_USER="${SUDO_USER:-$USER}"
+# El bootstrap no debe ejecutarse directamente como root.
 [[ "$DEPLOY_USER" != "root" ]] || {
   echo "Ejecuta como usuario no root (azureuser) con sudo" >&2
   exit 1
 }
+# Verifica que el usuario de despliegue exista y que sudo esté disponible.
 id "$DEPLOY_USER" >/dev/null 2>&1 || {
   echo "No existe el usuario $DEPLOY_USER" >&2
   exit 1
 }
 sudo -v
 
+# Función común para mostrar mensajes del proceso.
 log() { printf '[bootstrap] %s\n' "$*"; }
 
+# Importa la identificación de la distribución y exige Ubuntu.
 if ! . /etc/os-release || [[ "${ID:-}" != "ubuntu" ]]; then
   echo "Este script está pensado para Ubuntu" >&2
   exit 1
 fi
 
+# Instala herramientas base, incluyendo envsubst, fail2ban y utilidades de compresión.
 log "Instalando paquetes base..."
 sudo apt-get update
 sudo apt-get install -y \
@@ -28,15 +34,18 @@ sudo apt-get install -y \
   python3-systemd gzip util-linux
 
 log "Configurando el repositorio de Docker..."
+# Crea un keyring dedicado para validar paquetes oficiales de Docker.
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
   -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
+# Registra el repositorio Docker usando la arquitectura y versión de Ubuntu detectadas.
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" \
   | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
 
 sudo apt-get update
+# Instala Docker Engine, Compose y los plugins de construcción.
 sudo apt-get install -y \
   docker-ce docker-ce-cli containerd.io \
   docker-buildx-plugin docker-compose-plugin
@@ -117,3 +126,14 @@ Siguientes pasos:
 Usuario de despliegue: $DEPLOY_USER
 Directorio: /opt/gamestore
 EOF
+# Permite al usuario de despliegue usar Docker después de volver a iniciar sesión.
+# Crea y activa 2 GB de swap si la VM todavía no tiene swap configurada.
+  # fallocate es rápido; dd actúa como alternativa si el sistema de archivos no lo permite.
+  # Protege el archivo, lo inicializa, lo activa y lo hace persistente.
+  # Reduce el uso agresivo de swap y aplica la configuración inmediatamente.
+# Configura el bloqueo temporal de IPs que fallen repetidamente al autenticarse por SSH.
+# Activa Fail2ban al arrancar y recarga su configuración.
+# Limita el tamaño y cantidad de archivos de log generados por Docker.
+  # No sobrescribe una configuración existente para evitar perder ajustes administrados.
+# Crea la estructura que utilizarán Compose, los scripts y los backups.
+# Muestra versiones y el estado de Fail2ban para facilitar la comprobación inicial.

@@ -7,6 +7,7 @@
 #   GHCR_USER / GHCR_TOKEN
 set -Eeuo pipefail
 
+# Argumentos principales y valores configurables por variables de entorno.
 HOST="${1:-}"
 SSH_KEY="${2:-}"
 SSH_USER="${DEPLOY_USER:-azureuser}"
@@ -14,6 +15,7 @@ SSH_PORT="${DEPLOY_PORT:-22}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/gamestore}"
 GHCR_USER="${GHCR_USER:-${GITHUB_ACTOR:-github-actions}}"
 
+# Localiza el repositorio y los archivos que se enviarán a la VM.
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEPLOY_DIR="$REPO_ROOT/deploy"
 ENV_FILE="$REPO_ROOT/deploy.env"
@@ -101,6 +103,10 @@ install -m 755 "$DEPLOY_DIR/scripts/backup-db.sh" "$STAGE/scripts/backup-db.sh"
 install -m 755 "$DEPLOY_DIR/scripts/restore-db.sh" "$STAGE/scripts/restore-db.sh"
 install -m 755 "$DEPLOY_DIR/postgres/init-keycloak-db.sh" "$STAGE/postgres/init-keycloak-db.sh"
 install -m 644 "$DEPLOY_DIR/keycloak/realm-export.template.json" "$STAGE/keycloak/realm-export.template.json"
+# Anadido para garantizar que incluir los archivos de observabilidad en el despliegue
+mkdir -p "$STAGE/observability/alloy" "$STAGE/grafana/datasources" "$STAGE/grafana/dashboards"
+cp -R "$DEPLOY_DIR/observability/." "$STAGE/observability/"
+cp -R "$REPO_ROOT/grafana/." "$STAGE/grafana/"
 
 tar -C "$STAGE" -czf - . \
   | ssh "${SSH_OPTS[@]}" "$SSH_USER@$HOST" \
@@ -123,3 +129,18 @@ ssh "${SSH_OPTS[@]}" "$SSH_USER@$HOST" \
   "cd '$REMOTE_DIR' && PUBLIC_URL='$PUBLIC_URL' bash scripts/remote-deploy.sh '$IMAGE_TAG'"
 
 log "Despliegue completado: https://$PUBLIC_HOST (tag $IMAGE_TAG)"
+# Funciones de salida estandarizada.
+# Lee valores de deploy.env sin ejecutar sus contenidos.
+# Comprueba argumentos, configuración, clave SSH y formatos básicos.
+# Carga la configuración que determina destino, registro e imagen.
+# Normaliza nombres DNS para comparar sin diferencias de mayúsculas.
+# Evita desplegar staging en producción o viceversa.
+# Valida valores obligatorios y prohíbe usar la etiqueta mutable "latest".
+# Confirma que todos los archivos necesarios estén presentes antes de conectar.
+# Opciones para que SSH sea no interactivo, seguro y tolerante a cortes breves.
+# La clave privada debe ser legible únicamente por su propietario.
+# Verifica conexión, permisos de escritura y disponibilidad de Docker remoto.
+# Construye un paquete temporal con permisos adecuados para cada archivo.
+# Envía el paquete por SSH y lo extrae en el directorio remoto.
+# Si hay token, autentica la VM contra GitHub Container Registry.
+# Ejecuta el despliegue dentro de la VM usando el tag validado.

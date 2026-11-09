@@ -841,19 +841,19 @@ backend/telemetry.py
 backend/metrics.py	
 - Define 3 métricas de negocio + 3 de seguridad
 
-.devcontainer/alloy/config.alloy	
+deploy/observability/alloy/config.alloy
 - Recibe trazas OTLP, captura logs Docker, filtra backend, envía a Tempo y Loki
 
-.devcontainer/tempo/tempo.yaml	
+deploy/observability/tempo.yaml
 - Recibe trazas vía OTLP, genera service-graphs/span-metrics, almacena local
 
-.devcontainer/prometheus.yml	
+deploy/observability/prometheus.yml
 - Scrapea backend:5000/metrics y cadvisor:8080, evalúa reglas de alerta
 
-.devcontainer/alertmanager/rules.yml	
+deploy/observability/rules.yml
 - 3 reglas: error rate, latencia P95, fallos de auth
 
-.devcontainer/alertmanager/alertmanager.yml	
+deploy/observability/alertmanager.yml
 - Configura destino de alertas (slack/webhook/email)
 
 grafana/datasources/datasources.yaml	
@@ -878,9 +878,9 @@ grafana/dashboards/
 
 - [`backend/metrics.py`](backend/metrics.py)
 - [`backend/telemetry.py`](backend/telemetry.py)
-- [Configuración de Alloy](.devcontainer/alloy/config.alloy)
-- [Prometheus](.devcontainer/prometheus.yml)
-- [Alertmanager](.devcontainer/alertmanager)
+- [Configuración de Alloy](deploy/observability/alloy/config.alloy)
+- [Prometheus](deploy/observability/prometheus.yml)
+- [Alertmanager](deploy/observability/alertmanager.yml)
 - [Dashboards](grafana/dashboards)
 
 ### Dashboards
