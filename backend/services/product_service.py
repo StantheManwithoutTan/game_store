@@ -75,6 +75,12 @@ class ProductService:
 
         old_values = ProductService._product_snapshot(product)
 
+        if "sku" in data:
+            existing_product = Product.query.filter_by(sku=data["sku"]).first()
+
+            if existing_product and existing_product.id != product.id:
+                raise ValueError("Product SKU already exists")
+
         if "name" in data and not data["name"]:
             raise ValueError("Product name is required")
 
@@ -87,14 +93,14 @@ class ProductService:
         for key, value in data.items():
             setattr(product, key, value)
 
-            audit_log = AuditLog(
-                table_name="products",
-                record_id=product.id,
-                action="UPDATE",
-                old_values=old_values,
-                new_values=ProductService._product_snapshot(product),
-                changed_by="system",
-            )
+        audit_log = AuditLog(
+            table_name="products",
+            record_id=product.id,
+            action="UPDATE",
+            old_values=old_values,
+            new_values=ProductService._product_snapshot(product),
+            changed_by="system",
+        )
 
         db.session.add(audit_log)
         db.session.commit()
