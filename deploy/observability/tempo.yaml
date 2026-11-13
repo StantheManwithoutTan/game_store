@@ -19,7 +19,7 @@ metrics_generator:
   registry:
     collection_interval: 15s
   storage:
-    path: /tmp/tempo/generator/wal
+    path: /var/tempo/...
 
 storage:
   trace:

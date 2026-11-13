@@ -45,7 +45,8 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
-
+        with:
+            ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Generar deploy.env
         run: |
           cat > deploy.env <<'EOF'

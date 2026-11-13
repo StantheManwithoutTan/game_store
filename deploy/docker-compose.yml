@@ -185,9 +185,10 @@ services:
   loki:
     image: grafana/loki:3.6.20
     restart: unless-stopped
-    command: ["-config.file=/etc/loki/local-config.yaml", "-compactor.retention-enabled=true", "-compactor.retention-period=168h"]
+    command: ["-config.file=/etc/loki/config.yaml"]
     expose: ["3100"]
     volumes:
+      - ./observability/loki.yaml:/etc/loki/config.yaml:ro
       - loki_data:/loki
     networks: [observability]
 
@@ -213,7 +214,7 @@ services:
     networks: [observability]
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.33.0
+    image: gcr.io/cadvisor/cadvisor:v0.55.1 
     restart: unless-stopped
     privileged: true
     volumes:
