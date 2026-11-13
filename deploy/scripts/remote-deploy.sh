@@ -10,6 +10,7 @@ NEW_TAG="${1:-}"
 # El script se ejecuta desde el directorio padre de scripts/, normalmente /opt/gamestore.
 REMOTE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REMOTE_DIR"
+chmod -R a+rX grafana observability 2>/dev/null || true
 
 # Mensajes y errores con un prefijo identificable en los logs.
 log() { printf '[remote-deploy] %s\n' "$*"; }
