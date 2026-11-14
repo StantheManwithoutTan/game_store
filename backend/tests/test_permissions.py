@@ -25,6 +25,7 @@ def make_token(*scopes, exp_offset=3600):
 class TestConfig(Config):
     TESTING = True
     TEST_AUTH = True
+    SECRET_KEY = TEST_SECRET
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

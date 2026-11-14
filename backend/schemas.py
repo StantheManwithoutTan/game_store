@@ -35,7 +35,12 @@ class ConsoleSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=120))
     manufacturer = fields.Str(required=True)
     release_year = fields.Int(allow_none=True)
-    price = fields.Decimal(as_string=True, required=True)
+    price = fields.Decimal(
+        as_string=True,
+        required=True,
+        places=2,
+        validate=lambda value: 0 < value <= 99999999.99
+    )
     stock = fields.Int(load_default=0)
 
 
@@ -44,7 +49,12 @@ class GameSchema(Schema):
     title = fields.Str(required=True)
     genre = fields.Str(allow_none=True)
     release_date = fields.Date(allow_none=True)
-    price = fields.Decimal(as_string=True, required=True)
+    price = fields.Decimal(
+        as_string=True,
+        required=True,
+        places=2,
+        validate=lambda value: 0 < value <= 99999999.99
+    )
     stock = fields.Int(load_default=0)
     console_id = fields.Int(required=True)
 
@@ -53,7 +63,12 @@ class ControllerSchema(Schema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
     wireless = fields.Bool(load_default=True)
-    price = fields.Decimal(required=True)
+    price = fields.Decimal(
+        as_string=True,
+        required=True,
+        places=2,
+        validate=lambda value: 0 < value <= 99999999.99
+    )
     stock = fields.Int(load_default=0)
     console_id = fields.Int(required=True)
 
@@ -81,9 +96,17 @@ class ProductSchema(Schema):
     sku = fields.Str(required=True, validate=validate.Length(min=1, max=80))
     description = fields.Str(allow_none=True)
     category = fields.Str(allow_none=True, validate=validate.Length(max=80))
-    price = fields.Decimal(as_string=True, required=True)
+    price = fields.Decimal(
+        as_string=True,
+        required=True,
+        places=2,
+        validate=lambda value: 0 < value <= 99999999.99
+    )
     quantity = fields.Int(load_default=0)
-    min_stock = fields.Int(load_default=0)
+    min_stock = fields.Int(
+    load_default=0,
+    validate=validate.Range(min=0, max=2147483647)
+        )
     status = fields.Str(load_default="active")
     critico_stock = fields.Bool(dump_default=False)
 
@@ -100,16 +123,25 @@ class StockMovementSchema(Schema):
     created_at = fields.DateTime(dump_only=True)
 
 class StockEntradaSchema(Schema):
-    product_id = fields.Int(required=True)
+    product_id = fields.Int(
+        required=True,
+        validate=validate.Range(min=1, max=2147483647)
+    )
     amount = fields.Int(required=True, validate=validate.Range(min=1))
     motive = fields.Str(allow_none=True)
 
 class StockSalidaSchema(Schema):
-    product_id = fields.Int(required=True)
+    product_id = fields.Int(
+        required=True,
+        validate=validate.Range(min=1, max=2147483647)
+    )
     amount = fields.Int(required=True, validate=validate.Range(min=1))
     motive = fields.Str(allow_none=True)
 
 class StockAjusteSchema(Schema):
-    product_id = fields.Int(required=True)
+    product_id = fields.Int(
+        required=True,
+        validate=validate.Range(min=1, max=2147483647)
+    )
     stock_after = fields.Int(required=True, validate=validate.Range(min=0))
     motive = fields.Str(allow_none=True)

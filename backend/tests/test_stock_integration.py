@@ -41,6 +41,7 @@ def client(postgres_container):
     class TestConfig(Config):
         TESTING = True
         TEST_AUTH = True
+        SECRET_KEY = TEST_SECRET
         SQLALCHEMY_DATABASE_URI = postgres_container.get_connection_url()
         SQLALCHEMY_TRACK_MODIFICATIONS = False
 
