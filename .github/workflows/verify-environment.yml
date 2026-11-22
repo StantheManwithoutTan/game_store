@@ -1,0 +1,517 @@
+name: Verify Environment
+
+# Verificación posterior al despliegue.
+#
+# - mode=smoke: solo comprueba disponibilidad (staging y producción).
+# - mode=full:  smoke + API/integración/Keycloak + E2E + seguridad/ZAP +
+#               observabilidad (solo staging).
+#
+# Los resultados se guardan en `results/backend` y `results/frontend`, se
+# publican como artefactos y se resumen en un Check Run del commit desplegado.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      host:
+        type: string
+        required: true
+      image_tag:
+        type: string
+        required: true
+      mode:
+        type: string
+        default: full   # full | smoke
+    secrets:
+      FLASK_SECRET_KEY:
+        required: true
+      QA_PASSWORD:
+        required: false
+      QA_USERNAME:
+        required: false
+      KEYCLOAK_ADMIN_USER:
+        required: false
+      KEYCLOAK_ADMIN_PASSWORD:
+        required: false
+      KEYCLOAK_CLIENT_SECRET:
+        required: false
+      SSH_PRIVATE_KEY:
+        required: false
+
+permissions:
+  contents: read
+  checks: write
+  actions: read
+
+env:
+  BASE_URL: https://${{ inputs.host }}
+  KEYCLOAK_URL: https://${{ inputs.host }}:8443
+  KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM || 'game-store' }}
+  KEYCLOAK_CLIENT_ID: ${{ vars.KEYCLOAK_CLIENT_ID || 'game-store-client' }}
+  EXPECTED_VERSION: ${{ inputs.image_tag }}
+  EXPECTED_ENVIRONMENT: ${{ inputs.environment }}
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 1. Smoke: siempre. No necesita credenciales.
+  # ─────────────────────────────────────────────────────────────────────────
+  smoke:
+    name: Smoke (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de pruebas
+        run: pip install -r backend/tests/deployed/requirements.txt
+
+      - name: Esperar disponibilidad del sistema
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS --max-time 10 "$BASE_URL/health" >/dev/null; then
+              echo "Sistema disponible en $BASE_URL"
+              exit 0
+            fi
+            echo "Intento $attempt/30: aún no responde..."
+            sleep 10
+          done
+          echo "::error::El sistema no respondió en $BASE_URL/health"
+          exit 1
+
+      - name: Ejecutar pruebas de humo
+        working-directory: backend
+        env:
+          PYTEST_RESULT_PREFIX: smoke
+        run: pytest tests/deployed/test_smoke.py -v -m smoke
+
+      - name: Publicar resultados de smoke
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-backend-smoke-${{ inputs.environment }}
+          path: results/backend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 2. Usuario QA de Keycloak: idempotente, solo en full.
+  # ─────────────────────────────────────────────────────────────────────────
+  seed-qa:
+    name: Preparar usuario QA de Keycloak
+    if: inputs.mode == 'full'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de pruebas
+        run: pip install -r backend/tests/deployed/requirements.txt
+
+      - name: Crear o actualizar el usuario QA
+        env:
+          KEYCLOAK_ADMIN_USER: ${{ secrets.KEYCLOAK_ADMIN_USER || 'kcadmin' }}
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          QA_USERNAME: ${{ secrets.QA_USERNAME || 'qa-admin' }}
+          QA_PASSWORD: ${{ secrets.QA_PASSWORD }}
+          VERIFY_TLS: ${{ vars.VERIFY_TLS || 'true' }}
+        run: python backend/tests/deployed/seed_keycloak_qa.py
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 3. API + integración + Keycloak real.
+  # ─────────────────────────────────────────────────────────────────────────
+  api:
+    name: API + Integración + Keycloak
+    if: inputs.mode == 'full'
+    needs: [smoke, seed-qa]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de pruebas
+        run: pip install -r backend/tests/deployed/requirements.txt
+
+      - name: Ejecutar API, integración y Keycloak
+        working-directory: backend
+        env:
+          FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+          KEYCLOAK_ADMIN_USER: ${{ secrets.KEYCLOAK_ADMIN_USER || 'kcadmin' }}
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          KEYCLOAK_CLIENT_SECRET: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+          QA_USERNAME: ${{ secrets.QA_USERNAME || 'qa-admin' }}
+          QA_PASSWORD: ${{ secrets.QA_PASSWORD }}
+          PYTEST_RESULT_PREFIX: api
+        run: >-
+          pytest
+          tests/deployed/test_api.py
+          tests/deployed/test_integration.py
+          tests/deployed/test_keycloak.py
+          -v -m "api or integration or keycloak"
+
+      - name: Publicar resultados de API
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-backend-api-${{ inputs.environment }}
+          path: results/backend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 4. E2E real con Playwright + Keycloak.
+  # ─────────────────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E Playwright (${{ inputs.environment }})
+    if: inputs.mode == 'full'
+    needs: [api, seed-qa]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: game_store_frontend/package-lock.json
+
+      - name: Instalar dependencias del frontend
+        working-directory: game_store_frontend
+        run: npm ci --ignore-scripts
+
+      - name: Instalar Chromium
+        working-directory: game_store_frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Ejecutar E2E de staging
+        working-directory: game_store_frontend
+        env:
+          STAGING_URL: ${{ env.BASE_URL }}
+          KEYCLOAK_URL: ${{ env.KEYCLOAK_URL }}
+          QA_USERNAME: ${{ secrets.QA_USERNAME || 'qa-admin' }}
+          QA_PASSWORD: ${{ secrets.QA_PASSWORD }}
+          PLAYWRIGHT_IGNORE_HTTPS: ${{ vars.PLAYWRIGHT_IGNORE_HTTPS || 'false' }}
+          CI: "true"
+        run: npm run test:e2e:staging
+
+      - name: Publicar resultados E2E
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-frontend-e2e-${{ inputs.environment }}
+          path: results/frontend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 5. Seguridad del ambiente + ZAP baseline.
+  # ─────────────────────────────────────────────────────────────────────────
+  security:
+    name: Seguridad + ZAP
+    if: inputs.mode == 'full'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de pruebas
+        run: pip install -r backend/tests/deployed/requirements.txt
+
+      - name: Ejecutar pruebas de seguridad
+        working-directory: backend
+        env:
+          FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+          PYTEST_RESULT_PREFIX: security
+        run: pytest tests/deployed/test_security.py -v -m security
+
+      - name: Preparar carpeta para ZAP
+        run: |
+          mkdir -p results/backend
+          chmod 777 results/backend
+
+      - name: Ejecutar ZAP baseline contra el ambiente
+        continue-on-error: true
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/results/backend:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t "$BASE_URL" \
+              -J zap-report.json \
+              -r zap-report.html \
+              -w zap-report.md \
+              -I -m 5
+
+      - name: Validar hallazgos altos de ZAP
+        run: python backend/tests/deployed/check_zap_report.py results/backend/zap-report.json
+
+      - name: Publicar resultados de seguridad
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-backend-security-${{ inputs.environment }}
+          path: results/backend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 6. Observabilidad interna (requiere SSH a la VM).
+  # ─────────────────────────────────────────────────────────────────────────
+  observability:
+    name: Observabilidad
+    if: inputs.mode == 'full'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar clave SSH
+        id: ssh
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SSH_KEY" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SSH_PRIVATE_KEY no disponible; se omite la verificación interna de observabilidad."
+            exit 0
+          fi
+          install -m 600 /dev/null key
+          printf '%s\n' "$SSH_KEY" > key
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar servicios de observabilidad
+        if: steps.ssh.outputs.available == 'true'
+        env:
+          DEPLOY_USER: ${{ vars.DEPLOY_USER || 'azureuser' }}
+          REMOTE_DIR: ${{ vars.REMOTE_DIR || '/opt/gamestore' }}
+        run: |
+          set -o pipefail
+          mkdir -p results/backend
+          ssh -i key \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -o ServerAliveInterval=30 \
+            -o StrictHostKeyChecking=accept-new \
+            "$DEPLOY_USER@${{ inputs.host }}" \
+            "cd '$REMOTE_DIR' && bash -s" 2>&1 <<'REMOTE' | tee results/backend/observability.txt
+          set -euo pipefail
+          echo "== Servicios =="
+          docker compose ps
+          echo
+          echo "== Health checks internos =="
+          docker compose exec -T backend python - <<'PY'
+          import json
+          import urllib.request
+
+          checks = {
+              "prometheus": "http://prometheus:9090/-/healthy",
+              "alertmanager": "http://alertmanager:9093/-/healthy",
+              "grafana": "http://grafana:3000/api/health",
+              "loki": "http://loki:3100/ready",
+              "tempo": "http://tempo:3200/ready",
+              "alloy": "http://alloy:12345/-/ready",
+          }
+          failed = []
+          for name, url in checks.items():
+              try:
+                  with urllib.request.urlopen(url, timeout=5) as response:
+                      body = response.read(160).decode("utf-8", "replace").strip()
+                      print(f"{name}: OK {response.status} {body[:100]}")
+              except Exception as error:
+                  print(f"{name}: FAIL {error}")
+                  failed.append(name)
+
+          if failed:
+              raise SystemExit(f"Servicios con fallo: {', '.join(failed)}")
+          PY
+          echo
+          echo "== Targets de Prometheus =="
+          docker compose exec -T backend python - <<'PY'
+          import json
+          import urllib.request
+
+          with urllib.request.urlopen(
+              "http://prometheus:9090/api/v1/targets", timeout=10
+          ) as response:
+              data = json.load(response)
+
+          targets = [
+              target
+              for target in data["data"]["activeTargets"]
+              if target["labels"].get("job") in {"flask", "cadvisor"}
+          ]
+          if not targets:
+              raise SystemExit("No hay targets flask/cadvisor en Prometheus")
+
+          for target in targets:
+              print(
+                  f"{target['labels'].get('job')}: {target['health']} "
+                  f"{target.get('scrapeUrl', '')}"
+              )
+
+          down = [target for target in targets if target["health"] != "up"]
+          if down:
+              raise SystemExit(f"Targets caídos: {len(down)}")
+          print("Targets flask/cadvisor en UP")
+          PY
+          echo
+          echo "Observabilidad OK"
+          REMOTE
+
+      - name: Registrar omisión de observabilidad
+        if: steps.ssh.outputs.available != 'true'
+        run: |
+          mkdir -p results/backend
+          echo "SSH_PRIVATE_KEY no disponible; verificación interna omitida." \
+            > results/backend/observability.txt
+
+      - name: Publicar resultados de observabilidad
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-backend-observability-${{ inputs.environment }}
+          path: results/backend/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 7. Reporte final: siempre se ejecuta para no ocultar fallos.
+  # ─────────────────────────────────────────────────────────────────────────
+  report:
+    name: Reporte final
+    if: always()
+    needs: [smoke, seed-qa, api, e2e, security, observability]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar resultados del backend
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: verify-backend-*
+          path: results/backend
+          merge-multiple: true
+
+      - name: Descargar resultados del frontend
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: verify-frontend-*
+          path: results/frontend
+          merge-multiple: true
+
+      - name: Resumir resultados
+        id: summary
+        continue-on-error: true
+        run: python backend/tests/deployed/summarize_results.py results
+
+      - name: Publicar Check Run del commit desplegado
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          SMOKE_RESULT: ${{ needs.smoke.result }}
+          SEED_RESULT: ${{ needs.seed-qa.result }}
+          API_RESULT: ${{ needs.api.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          OBSERVABILITY_RESULT: ${{ needs.observability.result }}
+        with:
+          script: |
+            const results = {
+              smoke: process.env.SMOKE_RESULT,
+              'seed-qa': process.env.SEED_RESULT,
+              api: process.env.API_RESULT,
+              e2e: process.env.E2E_RESULT,
+              security: process.env.SECURITY_RESULT,
+              observability: process.env.OBSERVABILITY_RESULT,
+            }
+            const failed =
+              Object.values(results).some(
+                (result) => result === 'failure' || result === 'cancelled',
+              ) || process.env.SUMMARY_OUTCOME === 'failure'
+
+            const lines = Object.entries(results).map(
+              ([name, result]) => `- **${name}**: ${result}`,
+            )
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: `Verificación de ambiente (${process.env.ENVIRONMENT})`,
+              head_sha: process.env.HEAD_SHA,
+              status: 'completed',
+              conclusion: failed ? 'failure' : 'success',
+              output: {
+                title: failed
+                  ? 'La verificación encontró fallos'
+                  : 'Verificación completada',
+                summary: lines.join('\n'),
+              },
+            })
+
+      - name: Fallar si alguna verificación falló
+        if: always()
+        env:
+          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          SMOKE_RESULT: ${{ needs.smoke.result }}
+          SEED_RESULT: ${{ needs.seed-qa.result }}
+          API_RESULT: ${{ needs.api.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          OBSERVABILITY_RESULT: ${{ needs.observability.result }}
+        run: |
+          failed=0
+          for result in \
+            "$SMOKE_RESULT" \
+            "$SEED_RESULT" \
+            "$API_RESULT" \
+            "$E2E_RESULT" \
+            "$SECURITY_RESULT" \
+            "$OBSERVABILITY_RESULT"; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              failed=1
+            fi
+          done
+
+          if [ "$SUMMARY_OUTCOME" = "failure" ]; then
+            failed=1
+          fi
+
+          if [ "$failed" = "1" ]; then
+            echo "::error::Alguna verificación del ambiente falló"
+            exit 1
+          fi
+
+          echo "Todas las verificaciones del ambiente finalizaron correctamente."

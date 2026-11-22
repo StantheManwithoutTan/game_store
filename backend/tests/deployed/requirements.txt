@@ -1,0 +1,6 @@
+# Dependencias mínimas para ejecutar las pruebas contra el sistema desplegado.
+# No se instala Flask ni SQLAlchemy porque las pruebas hablan por HTTP.
+pytest>=9.0,<10
+pytest-html>=4.1,<5
+requests>=2.32,<3
+PyJWT>=2.10,<3
