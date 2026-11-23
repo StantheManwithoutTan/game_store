@@ -52,6 +52,8 @@ jobs:
           cd game_store_frontend
           npm run test
 
+        # Hagamos esto porque Sonarcloud corre desde la raiz del repositorio, solo cambia las rutas para que 
+        # grep imprime la primera ruta escrita en el archivo como validacion
       - name: Rewrite LCOV paths for SonarCloud
         run: |
           sed -i 's#^SF:src/#SF:game_store_frontend/src/#' game_store_frontend/coverage/lcov.info

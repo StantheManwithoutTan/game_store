@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
   packages: read
+  # Los workflows reutilizables no pueden ampliar los permisos del llamador:
+  # verify-environment.yml necesita checks:write y actions:read.
+  checks: write
+  actions: read
 
 jobs:
   staging:

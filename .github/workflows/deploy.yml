@@ -25,14 +25,26 @@ on:
         required: true
       GRAFANA_ADMIN_PASSWORD:
         required: false
+      # Credenciales del usuario QA de Keycloak para el E2E (Playwright)
+      QA_USERNAME:
+        required: false
       QA_PASSWORD:
         required: false
+      # Usuario administrador bootstrap de Keycloak (por defecto kcadmin)
+      KEYCLOAK_ADMIN_USER:
+        required: false
+      # Github Container Registry Token
+      # autenticado con GHCR(ghcr.io) para descargar o subir las imagenes privadas de los contenedores antes de correr
       GHCR_TOKEN:
         required: false
 
 permissions:
   contents: read
   packages: read
+  # Necesarios para que verify-environment.yml publique el Check Run del
+  # commit desplegado y descargue los artefactos de la verificación.
+  checks: write
+  actions: read
 
 concurrency:
   group: deploy-${{ inputs.environment }}
@@ -106,3 +118,12 @@ jobs:
           done
           echo "El sistema no respondió con la versión esperada" >&2
           exit 1
+  verify:
+    needs: deploy
+    uses: ./.github/workflows/verify-environment.yml
+    with:
+      environment: ${{ inputs.environment }}
+      host: ${{ inputs.host }}
+      image_tag: ${{ inputs.image_tag }}
+      mode: ${{ inputs.environment == 'staging' && 'full' || 'smoke' }}
+    secrets: inherit

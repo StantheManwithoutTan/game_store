@@ -90,7 +90,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
       - run: docker pull postgres:15
-      - run: pytest tests/test_product_api.py tests/test_permissions.py tests/test_security.py -v --cov
+      - run: pytest tests/test_product_api.py tests/test_permissions.py tests/test_security_local.py -v --cov
 
   e2e-tests:
     needs: api-tests

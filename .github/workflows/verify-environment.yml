@@ -247,7 +247,7 @@ jobs:
         env:
           FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
           PYTEST_RESULT_PREFIX: security
-        run: pytest tests/deployed/test_security.py -v -m security
+        run: pytest tests/deployed/test_security_staging.py -v -m security
 
       - name: Preparar carpeta para ZAP
         run: |
